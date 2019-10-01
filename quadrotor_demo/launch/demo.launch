@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node pkg="quadrotor_demo" type="take_off" name="take_off" args="-d $(find quadrotor_demo)/src/take_off.cpp" output="screen" />
+	<node pkg="quadrotor_demo" type="controller" name="controller" args="-d $(find quadrotor_demo)/src/controller.cpp" respawn="true" output="screen" />
+	<node pkg="quadrotor_demo" type="pose_pub" name="pose_pub" args="-d $(find quadrotor_demo)/src/pose_pub.cpp" respawn="true" output="screen" />
+</launch>
