@@ -31,6 +31,7 @@ private:
     double kp;
     double kd;
     double ki;
+    double d=1.0;
 
     int waypoint_cnt;
 
@@ -87,8 +88,8 @@ public:
     // void setreadyflag();
 
     // void setgoalpos(double x, double y);
-    void setpidgains(double p=1.0, double i=0.00, double d=0.03);
-    void setvelocity(double x=1.0);
+    void setpidgains(double p=0.5, double i=0.00, double d=0.0);
+    void setvelocity(double x=1.2);
     void setdronenum(int x=1);
     void setpath();
     

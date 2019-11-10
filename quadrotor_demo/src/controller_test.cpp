@@ -39,7 +39,8 @@ void Controller_test::setwaypoint_cnt()
 }
 
 void Controller_test::setpath() {
-    path = vector<Vec2i> { {1.0,1.0}, {2.0,1.0}, {3.0,1.0}, {4.0,1.0} };
+    path = vector<Vec2i> { {(1.0-0.3)*d,(0.0+0.3)*d}, {(1.0+0.3)*d,(1.0-0.3)*d}, {2.0*d,1.0*d}, 
+            {3.0*d,1.0*d}, {(4.0-0.3)*d,(1.0+0.3)*d}, {(4.0+0.3)*d,(2.0-0.3)*d}, {5.0*d, 2.0*d} };
 }
 
 void Controller_test::setpidgains(double p, double i, double d) {
@@ -164,7 +165,13 @@ void Controller_test::currentpos1Callback(const geometry_msgs::PoseStamped& odom
         }
         // v = k_p*e_P + k_i*e_I + k_d*e_D;
         for (int i=0; i<drone_num; i++) {
-            xyvelocity[i][0] = kp*errorvector[i][1] + ki*errorvector[i][2] + kd*errorvector[i][3];
+            if (goalpos.x == path[path.size()-1].x && goalpos.y == path[path.size()-1].y) {
+                xyvelocity[i][0] = kp*errorvector[i][1] + ki*errorvector[i][2] + kd*errorvector[i][3];
+            }
+            else {
+                xyvelocity[i][0] = v;
+            }
+            // xyvelocity[i][0] = kp*errorvector[i][1] + ki*errorvector[i][2] + kd*errorvector[i][3];
             if (xyvelocity[i][0] > v) {
                 xyvelocity[i][0] = v;
             }
@@ -177,6 +184,8 @@ void Controller_test::currentpos1Callback(const geometry_msgs::PoseStamped& odom
         // drone1
         control1input.linear.x = xyvelocity[0][1];
         control1input.linear.y = xyvelocity[0][2];
+        // cout << "drone "  << ": vx, " << xyvelocity[0][1] << endl;
+        // cout << "drone "  << ": vy, " << xyvelocity[0][2] << endl;;
         control1input.linear.z = 0.0;
         control1input_pub_.publish(control1input);
         /*
@@ -200,7 +209,7 @@ void Controller_test::eventCallback(const geometry_msgs::PoseStamped& odom1)
     currentpos.y = odom1.pose.position.y;
     int pathsize = path.size();
     // cout << "Xc pose: " << currentpos.x << " Xg pose: " << goalpos.x << " Yc pose: " << currentpos.y << " Yg pose: "<< goalpos.y <<endl;
-    if ((abs(currentpos.x - goalpos.x)<0.1) && (abs(currentpos.y - goalpos.y)<0.1 ) 
+    if ((abs(currentpos.x - goalpos.x)<d*0.1) && (abs(currentpos.y - goalpos.y)<d*0.1 ) 
         && (currentpos.x * goalpos.x > 0.01))
     {   
         if (waypoint_cnt == pathsize)
@@ -210,20 +219,31 @@ void Controller_test::eventCallback(const geometry_msgs::PoseStamped& odom1)
             control1input.linear.z = 0.0;
             control1input_pub_.publish(control1input);
             ROS_INFO("Finished...");
+            // ros::shutdown();
         }
-        else if ((abs(currentpos.x - path[pathsize-1].x)<0.1) && (abs(currentpos.y - path[pathsize-1].y)<0.1 ))
+        else if ((abs(currentpos.x - path[pathsize-1].x)<d*0.1) && (abs(currentpos.y - path[pathsize-1].y)<d*0.1 ))
         {   
             control1input.linear.x = 0.0;
             control1input.linear.y = 0.0;
             control1input.linear.z = 0.0;
             control1input_pub_.publish(control1input);
             ROS_INFO("Finished...");
+            // ros::shutdown();
         }
         else
-        {
+        {   
+
+
             cout << "Waypoint " << waypoint_cnt << " reached. ";
             // cout << "currentpos: " << currentpos.x << " " << currentpos.y << endl;
             waypoint_cnt++;
+            if (waypoint_cnt != pathsize) {
+                double theta1 = atan2(path[waypoint_cnt].x-path[waypoint_cnt-1].x, path[waypoint_cnt].y-path[waypoint_cnt-1].y);
+                double theta2 = atan2(path[waypoint_cnt+1].x-path[waypoint_cnt].x, path[waypoint_cnt+1].y-path[waypoint_cnt].y);
+                cout << "---------------"<< endl;
+                cout << theta1 << "   " << theta2 << endl;
+            }
+            
             setgoalpos(path[waypoint_cnt-1].x, path[waypoint_cnt-1].y);
         }
 
