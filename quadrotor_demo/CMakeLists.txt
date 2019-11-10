@@ -207,10 +207,16 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+add_executable(take_off_controller src/take_off_controller.cpp)
+target_link_libraries(take_off_controller ${catkin_LIBRARIES})
 add_executable(take_off src/take_off.cpp)
 target_link_libraries(take_off ${catkin_LIBRARIES})
 add_executable(controller src/controller.cpp)
 target_link_libraries(controller ${catkin_LIBRARIES})
+add_executable(controller_test src/controller_test.cpp)
+target_link_libraries(controller_test ${catkin_LIBRARIES})
+add_executable(controller_tracking src/controller_tracking.cpp)
+target_link_libraries(controller_tracking ${catkin_LIBRARIES})
 add_executable(pose_pub src/pose_pub.cpp)
 target_link_libraries(pose_pub ${catkin_LIBRARIES})
 add_executable(task_plan src/hungarian.cpp src/task_plan.cpp)
