@@ -5,7 +5,7 @@ Mobile robot trajectory planning based on UAV sensor information(simulation)
 
 ## Dependencies
 
-* hector_quadrotor packages: 
+* hector_quadrotor packages
  * hector_quadrotor(https://github.com/tu-darmstadt-ros-pkg/hector_quadrotor)
  * hector_models(https://github.com/tu-darmstadt-ros-pkg/hector_models)
  * hector_slam(https://github.com/tu-darmstadt-ros-pkg/hector_slam)
