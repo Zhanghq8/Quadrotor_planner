@@ -6,16 +6,16 @@ Mobile robot trajectory planning based on UAV sensor information(simulation)
 ## Dependencies
 
 * hector_quadrotor packages
- * hector_quadrotor(https://github.com/tu-darmstadt-ros-pkg/hector_quadrotor)
- * hector_models(https://github.com/tu-darmstadt-ros-pkg/hector_models)
- * hector_slam(https://github.com/tu-darmstadt-ros-pkg/hector_slam)
- * hector_gazebo(https://github.com/tu-darmstadt-ros-pkg/hector_gazebo)
- * hector_localization(https://github.com/tu-darmstadt-ros-pkg/hector_localization)
- * (OPTIONAL)gazebo_ros_pkgs(https://github.com/ros-simulation/gazebo_ros_pkgs)
- * (OPTIONAL)uuid_msgs(https://github.com/ros-geographic-info/unique_identifier)
+  * hector_quadrotor(https://github.com/tu-darmstadt-ros-pkg/hector_quadrotor)
+  * hector_models(https://github.com/tu-darmstadt-ros-pkg/hector_models)
+  * hector_slam(https://github.com/tu-darmstadt-ros-pkg/hector_slam)
+  * hector_gazebo(https://github.com/tu-darmstadt-ros-pkg/hector_gazebo)
+  * hector_localization(https://github.com/tu-darmstadt-ros-pkg/hector_localization)
+  * (OPTIONAL)gazebo_ros_pkgs(https://github.com/ros-simulation/gazebo_ros_pkgs)
+  * (OPTIONAL)uuid_msgs(https://github.com/ros-geographic-info/unique_identifier)
 * (OPTIONAL)geographic_info ros package(https://github.com/ros-geographic-info/geographic_info)
 * cmake >= 3.5
- * All OSes: [click here for installation instructions](https://cmake.org/install/)
+  * All OSes: [click here for installation instructions](https://cmake.org/install/)
 * make >= 4.1(linux)
   * Linux: make is installed by default on most Linux distros
 * gcc/g++ >= 5.4
