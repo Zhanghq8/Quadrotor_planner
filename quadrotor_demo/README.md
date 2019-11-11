@@ -26,9 +26,9 @@ Mobile robot trajectory planning based on UAV sensor information(simulation)
 ## Basic Build Instructions
 
 1. Clone hector_* packages
-2. Compile: `cmake_make`
+2. Compile: `catkin_make`
 3. Clone this repo
-4. Compile: `cmake_make`
+4. Compile: `catkin_make`
 
 ## Node included:
 
