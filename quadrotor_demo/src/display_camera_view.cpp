@@ -9,19 +9,23 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <unordered_map>
 #include <string>
 #include <queue>
 #include <sensor_msgs/Image.h>
 
+// Input: image pixel matrix
+// Output: the occupant grid coordinate
 
 using namespace cv;
 using namespace std;
 
 #define image_width 480 // pixel
 #define image_height 640 // pixel
-#define m_image_width 6*tan(41.8/57.2958)*2*1000 //mm
+#define m_image_width 6*tan(41.8/57.2958)*2*1000 //10729mm
 #define m_image_height 14300 //mm
 #define min_contours_area 20
+//22.34, 22.35->134.22
 
 class ImageConverter
 {
@@ -33,14 +37,14 @@ class ImageConverter
     ImageConverter(): it_(nh_)
     {
         image_sub_ = it_.subscribe("/drone1/downward_cam/camera/image", 1, &ImageConverter::imageCb, this);
-        cv::namedWindow("Thresholded Image");
-        cv::namedWindow("colorImg");
+        // cv::namedWindow("Thresholded Image");
+        // cv::namedWindow("colorImg");
     }
 
     ~ImageConverter()
     {
-        cv::destroyWindow("Thresholded Image");
-        cv::destroyWindow("colorImg");
+        // cv::destroyWindow("Thresholded Image");
+        // cv::destroyWindow("colorImg");
     }
     void imageCb(const sensor_msgs::ImageConstPtr& msg)
     {
@@ -57,60 +61,119 @@ class ImageConverter
             ROS_ERROR("cv_bridge exception: %s", e.what());
             return;
         }
-        // imshow("colorImg", colorImg);
         filter(colorImg);
-        
-        // cv::waitKey(3); 
     }
 
     void filter(const Mat& color_img)
-    {   
-        // ThresholdedImg = color_img;
-        // for (int i=0; i<ThresholdedImg.rows; i++) {
-        //     // uchar*data = image.ptr<uchar>(i);//得到第i行的首地址
-        //     for (int j=0; j<ThresholdedImg.cols;j++)
-        //     {
-        //         cout << "image" << int(ThresholdedImg.ptr<uchar>(i)[j]);
-        //     }
-        // }
-        // cout << endl;
-        // imshow("Thresholded Image", ThresholdedImg);
-        // cv::waitKey(3); 
+    {      
+        // grid number to coordinates
+        unordered_map<int, pair<int,int>> coordinates({ {0,{-1,-1}}, {1,{0,-1}}, {2, {1,-1}} ,
+                                                        {3,{-1,0}}, {4,{0,0}}, {5,{1,0}},
+                                                        {6,{-1,1}}, {7,{0,-1}}, {8,{1,1}}
+                                                        });
+        // grid number vector
+        vector<vector<bool>> occupancy(3, vector<bool> (3, false));
+        vector<int> cover(9, 0);  
+        vector<pair<int, int>> result;
 
-        // int iLowH = 170;
-        // int iHighH = 179;
-        // int iLowS = 173;
-        // int iHighS = 255;
-        // int iLowV = 0;
-        // int iHighV = 255;
-        // int number=3;
-        // float cup_size;
+        // 400mm offset->18 pixels 
+        // center: 320, 480
+        // 3000mm -> 
+        // create a roi image
+        int x = 320-69 , y = 240-69+18, w = 138, h = 138;
+        Rect ROI = Rect(x, y, w, h);
+        Mat image_roi = color_img(ROI);
 
-        // cvtColor( color_img, ThresholdedImg, CV_BGR2GRAY );
-        ThresholdedImg = color_img;
-        // imshow("Thresholded Image", ThresholdedImg);
-        // cv::waitKey(3); 
-        // cvtColor( color_img, ThresholdedImg, CV_BGR2GRAY );
+        imshow("roi_img", image_roi);
+
+        int width = image_roi.rows;  
+        int height = image_roi.cols;  
+
+        // create a copy of roi image, set the corner pixel as 255
+        cv::Mat Imgcopy(width, height, CV_8UC1);  
+
+        for (int i=0; i<image_roi.rows; i++) {
+            for (int j=0; j<image_roi.cols;j++)
+            {   
+                int gray = image_roi.at<uchar>(i, j);
+                if (i >= 0 && i < width/3 && j >= 0 && j < width/3) {
+                    if (gray == 0) {
+                        cover[0]++;
+                    }
+                }
+                else if (i >= 0 && i < width/3 && j >= width/3 && j < 2*width/3) {
+                    if (gray == 0) {
+                        cover[1]++;
+                    }
+                }
+                else if (i >= 0 && i < width/3 && j >= 2*width/3 && j < width) {
+                    if (gray == 0) {
+                        cover[2]++;
+                    }
+                }
+                else if (i >= width/3 && i < 2*width/3 && j >= 0 && j < width/3) {
+                    if (gray == 0) {
+                        cover[3]++;
+                    }
+                }
+                else if (i >= width/3 && i < 2*width/3 && j >= width/3 && j < 2*width/3) {
+                    if (gray == 0) {
+                        cover[4]++;
+                    }
+                }
+                else if (i >= width/3 && i < 2*width/3 && j >= 2*width/3 && j < width) {
+                    if (gray == 0) {
+                        cover[5]++;
+                    }
+                }
+                else if (i >= 2*width/3 && i < width && j >= 0 && j < width/3) {
+                    if (gray == 0) {
+                        cover[6]++;
+                    }
+                }
+                else if (i >= 2*width/3 && i < width && j >= width/3 && j < 2*width/3) {
+                    if (gray == 0) {
+                        cover[7]++;
+                    }
+                }
+                else  {
+                    if (gray == 0) {
+                        cover[8]++;
+                    }
+                }
+
+                if (i <= 2 || i >= (image_roi.rows-2) || j <= 2 || j >= image_roi.cols-2) {
+                    Imgcopy.at<uchar>(i,j) = 255;
+                }
+                else {
+                    Imgcopy.at<uchar>(i,j) = gray;
+                }
+            }
+        }
+
+        for (int i=0; i<cover.size(); i++) {
+            if (cover[i] >= 265) {
+                result.push_back(coordinates[i]);
+            }
+        }
+        cout << "The coordidates for obstacle: ";
+        for (auto n : result) {
+            cout << n.first << " " << n.second << "\t";
+        }
+
+        ThresholdedImg = Imgcopy;
+
+        // threshold for canny
         int thresh = 30;
-        // Mat imgHSV;
-        // vector<Mat> hsvSplit;
-        // cvtColor(imgcolor, imgHSV, COLOR_BGR2HSV); 
 
-        // split(imgHSV, hsvSplit);
-        // equalizeHist(hsvSplit[2],hsvSplit[2]);
-        // merge(hsvSplit,imgHSV);
-        // Mat imgThresholded;
-
-        // inRange(imgHSV, Scalar(iLowH, iLowS, iLowV), Scalar(iHighH, iHighS, iHighV), imgThresholded); //Threshold the image
-        // ThresholdedImg = color_img;
-        // Mat element = getStructuringElement(MORPH_RECT, Size(5, 5));
-        // morphologyEx(ThresholdedImg, ThresholdedImg, MORPH_OPEN, element);
-        // morphologyEx(ThresholdedImg, ThresholdedImg, MORPH_CLOSE, element);
-
+        // Gaussian filter to smooth image
         GaussianBlur(ThresholdedImg, ThresholdedImg, Size(3, 3), 0.1, 0, BORDER_DEFAULT);
         blur(ThresholdedImg, ThresholdedImg, Size(3, 3));
 
-        // Mat canny_output;
+        // OPEN and CLOSE operation to fill the narrow gap
+        // Mat element = getStructuringElement(MORPH_RECT, Size(5, 5));
+        // morphologyEx(ThresholdedImg, ThresholdedImg, MORPH_OPEN, element);
+        // morphologyEx(ThresholdedImg, ThresholdedImg, MORPH_CLOSE, element);
 
         vector<vector<Point> > contours;
         vector<vector<Point2d> > contours_map;
@@ -118,14 +181,15 @@ class ImageConverter
         vector<int> contours_index;
         priority_queue<pair<double, int>> pq;
 
-        Mat binaryMat(ThresholdedImg.size(), ThresholdedImg.type());
-        imshow("colorImg", ThresholdedImg);
-        //Apply thresholding
-        threshold(ThresholdedImg, ThresholdedImg, 150, 255, cv::THRESH_BINARY);
+        // imshow("ori_img", ThresholdedImg);
+        //Apply thresholding to convert image from gray to binary
+        threshold(ThresholdedImg, ThresholdedImg, 140, 255, cv::THRESH_BINARY);
+        // imshow("Binary Image", ThresholdedImg);
+
+        // canny edge detection
         Canny(ThresholdedImg, ThresholdedImg, thresh, thresh * 3, 3);
-        // imshow("Thresholded Image", ThresholdedImg);
-        // cv::waitKey(3); 
-        // imshow("result image", ThresholdedImg);
+        // imshow("Canny Image", ThresholdedImg);
+
         findContours(ThresholdedImg, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
         if (contours.size() == 0)
@@ -134,20 +198,10 @@ class ImageConverter
         }
         else
         {
-            Mat result(ThresholdedImg.size(), CV_8U, Scalar(0));
             Mat area(1, contours.size(), CV_32FC1);
-            // float maxArea = area.at<float>(0);
-            // int max = 0;
+
             cout << "contours number: " << contours.size() << endl;
-            // for (int i = 0; i < (int)contours.size(); i++)
-            // {
-            //     area.at<float>(i) = contourArea(contours[i]);
-            //     if (maxArea < area.at<float>(i))
-            //     {
-            //       maxArea = area.at<float>(i);
-            //       max = i;
-            //     }
-            // }
+
             for (int i = 0; i < (int)contours.size(); i++)
             {   
                 area.at<float>(i) = contourArea(contours[i]);
@@ -172,8 +226,8 @@ class ImageConverter
                 rectangle(ThresholdedImg, obstacle, Scalar(255), 1);
 
                 cv::Point2f center;
-                center.x = (obstacle.br().x - obstacle.tl().x)/2;
-                center.y = (obstacle.br().y - obstacle.tl().y)/2;
+                center.x = obstacle.tl().x + (obstacle.br().x - obstacle.tl().x)/2;
+                center.y = obstacle.tl().y + (obstacle.br().y - obstacle.tl().y)/2;
                 double ob_height = obstacle.height;
                 double ob_width = obstacle.width;
                 cout << "---------------------------" << endl;
@@ -198,14 +252,6 @@ class ImageConverter
                 cout << "obstacle area value in map:" << obs_area << endl;
             }
 
-
-
-            // rect.area();     
-            // rect.size();     
-            // rect.tl();   
-            // rect.br();      
-            // rect.width();  
-            // rect.height();  
             // vector<Moments> mu(contours.size());
             // mu[max] = moments(contours[max], false);
 
@@ -216,12 +262,6 @@ class ImageConverter
             // cout << "x= " << (int)mc[max].x << "****" << "y= " << (int)mc[max].y << endl;
             imshow("Thresholded Image", ThresholdedImg);
             cv::waitKey(3); 
-
-        // }
-        // cout << "Cup area:" << cup_size << endl;
-        // cv::waitKey(3);
-        // // return imgThresholded;
-        // return cup_size;
         }
     }
 
