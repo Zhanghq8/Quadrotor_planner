@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node pkg="ltl" type="test_buchi" name="test_buchi" args="-d $(find ltl)/test/test_buchi.cpp" output="screen" />
+</launch>
