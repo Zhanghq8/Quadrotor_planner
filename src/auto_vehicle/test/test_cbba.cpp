@@ -35,7 +35,7 @@ int main(int argc, char** argv )
     //===============================================================================================//    
     int64_t num_vehicle = 4;
     int64_t num_tasks = 6;
-    // Missions
+    // Tasks 
     // Define the task information:
     // Index of task, AP value(ltl), Position, Task Type, Number of vehicle
     std::vector<Task> tasks_data_ = {Task(0,2,{75},TaskType::RESCUE,num_vehicle),
@@ -62,6 +62,19 @@ int main(int argc, char** argv )
     int64_t num_col = 15;
     int64_t cell_size = 1;
     std::shared_ptr<SquareGrid> true_grid = GridGraph::CreateSquareGrid(num_row,num_col,cell_size);
+    for (int id = 45; id<51;id++){true_grid->SetObstacleRegionLabel(id,1);}
+    for (int id = 105; id<109;id++){true_grid->SetObstacleRegionLabel(id,1);}
+    for (int id = 120; id<124;id++){true_grid->SetObstacleRegionLabel(id,1);}
+    for (int id = 137; id<139;id++){true_grid->SetObstacleRegionLabel(id,1);}
+    for (int id = 152; id<154;id++){true_grid->SetObstacleRegionLabel(id,1);}
+    for (int id = 167; id<169;id++){true_grid->SetObstacleRegionLabel(id,1);}
+    for (int id = 188; id<195;id++){true_grid->SetObstacleRegionLabel(id,1);}
+    true_grid->SetObstacleRegionLabel(10,1);
+    true_grid->SetObstacleRegionLabel(25,1);
+    true_grid->SetObstacleRegionLabel(40,1);
+    true_grid->SetObstacleRegionLabel(55,1);
+    true_grid->SetObstacleRegionLabel(70,1);
+    true_grid->SetObstacleRegionLabel(85,1);
     std::shared_ptr<Graph_t<SquareCell *>> true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
     //===============================================================================================//
     //============================================= CBBA ============================================//
