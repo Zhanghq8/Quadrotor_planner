@@ -1,4 +1,5 @@
 #include "map/square_grid.hpp"
+#include "auto_vehicle/auto_vehicle.hpp"
 using namespace librav;
 
 std::string SquareCell::GetCellLabels(){
@@ -198,6 +199,16 @@ std::shared_ptr<Graph_t<SquareCell *>> GridGraph::BuildGraphFromSquareGrid(std::
         }
     }
 	return graph;
+}
+
+double GridGraph::CalcHeuristic(SquareCell *node1, SquareCell *node2){
+    int64_t dist_row = node1->coordinate_.x - node2->coordinate_.x;
+    int64_t dist_col = node1->coordinate_.y - node2->coordinate_.y;
+    return std::sqrt(dist_row*dist_row + dist_col*dist_col);
+}
+
+double GridGraph::CalcHeuristicUncertain(SquareCell *node1, SquareCell *node2){
+    return 1.0*(1.0 - node2->p_) + PENALTY_ * node2->p_;
 }
 
 

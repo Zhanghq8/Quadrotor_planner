@@ -16,6 +16,8 @@
 #include "ltl/buchi_automaton.hpp"
 
 namespace librav{
+
+class SquareCell;
 class ProductState
 {   
     public:

@@ -14,11 +14,10 @@
 
 #include "map/grid_cell_impl.hpp"
 #include "ltl/cell_label.hpp"
-// #include "vehicle/auto_team.hpp"
-
+#include "../../auto_team/auto_team.hpp"
+// #include "auto_vehicle/auto_vehicle.hpp"
 
 namespace librav{
-    const double PENALTY_ = 100.0;
     /*
  * Coordinate System:
  *		
@@ -113,9 +112,13 @@ namespace librav{
     };
 
     namespace GridGraph{
-        // Create gird map with given row and colum num
+        // Generate grid and graph with given columns and rows
         std::shared_ptr<SquareGrid> CreateSquareGrid(int32_t row_size, int32_t col_size, double cell_size);
         std::shared_ptr<Graph_t<SquareCell *>> BuildGraphFromSquareGrid(std::shared_ptr<SquareGrid> grid,bool ignore_obs);
+
+        // Update the edge cost(Required by A*)
+        double CalcHeuristic(SquareCell *node1, SquareCell *node2);    
+        double CalcHeuristicUncertain(SquareCell *node1, SquareCell *node2); 
     }
 }
 

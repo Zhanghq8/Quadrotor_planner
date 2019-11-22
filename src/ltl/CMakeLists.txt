@@ -17,7 +17,7 @@ set(LTL_LIB_SRC
 )
 
 add_library(ltl STATIC ${LTL_LIB_SRC})
-target_link_libraries(ltl map spot bddx)
+target_link_libraries(ltl map spot bddx auto_vehicle)
 target_include_directories(ltl PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>

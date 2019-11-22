@@ -11,7 +11,7 @@ set(MAP_LIB_SRC
 )
 
 add_library(map STATIC ${MAP_LIB_SRC})
-target_link_libraries(map ltl)
+target_link_libraries(map ltl auto_vehicle)
 
 target_include_directories(map PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
