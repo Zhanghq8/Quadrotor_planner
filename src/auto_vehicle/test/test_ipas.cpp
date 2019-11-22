@@ -88,16 +88,17 @@ int main(int argc, char** argv )
     //===============================================================================================//      
 
     int64_t ipas_tt = 0;
-    std::map<int64_t,std::vector<double>> paths_entropy_; 
-    std::vector<double> map_entropy_;
-    std::vector<int64_t> nz_ig_domain_;
-    std::map<int,std::vector<int64_t>> subregion_red;
     while (true){
         ipas_tt ++;
+        // Implement the CBBA to determine the task assignment
         CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_,uncertain_graph);
+        // Compute the path for the auto team while satisfying its local assignment
         std::map<int64_t,Path_t<SquareCell*>> path_map_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,uncertain_graph,TaskType::RESCUE);
-        std::cout << "Convergence for task assignment is achieved." << std::endl;
+        
+        //=============================================================//
         //============================== DEBUG ========================//
+        //=============================================================//
+        std::cout << "Convergence for task assignment is achieved." << std::endl;
         for(auto p: path_map_){
             std::cout << "The path for vehicle " << p.first << " is: ";
             for(auto v: p.second){
@@ -105,11 +106,17 @@ int main(int argc, char** argv )
             }
             std::cout << std::endl;
         }
-        break;
+        //=============================================================//
+        //=============================================================//
+        //=============================================================//
+        
+        // Check whether the IPAS convergence is achieved
+        bool flag_IPAS = IPASMeasurement::IPASConvergence(uncertain_graph,path_map_);
+        if (flag_IPAS == true) {break;}
         //===============================================================================================//
         //============================================= IPAS ============================================//
         //===============================================================================================// 
-    
+
     }
 	return 0;
 }

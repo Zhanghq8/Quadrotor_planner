@@ -286,7 +286,6 @@ Path_t<SquareCell*> AutoVehicle::PathComputation(TasksSet tasks, std::shared_ptr
     return path;
 }
 
-
 //================================================================================================//
 //=============================================== IPAS ===========================================//
 //================================================================================================//
@@ -327,3 +326,12 @@ std::map<int64_t,Path_t<SquareCell*>> IPASMeasurement::GeneratePaths(std::shared
     return paths_map_;
 }
 
+bool IPASMeasurement::IPASConvergence(std::shared_ptr<Graph_t<SquareCell*>> graph,std::map<int64_t,Path_t<SquareCell*>> paths_map){
+    for(auto p: paths_map){
+        if(p.second.empty()){return true;}
+        double en_thre = p.second.size() * ENTROPY_THRED_;
+        double entropy_path = GridGraph::EntropyPath(p.second,graph);
+        if(entropy_path > en_thre){return false;}
+    }
+    return true;
+}

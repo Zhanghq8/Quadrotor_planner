@@ -226,6 +226,31 @@ double GridGraph::CalcHeuristicUncertain(SquareCell *node1, SquareCell *node2){
     return 1.0*(1.0 - node2->p_) + PENALTY_ * node2->p_;
 }
 
+double GridGraph::EntropyPath(Path_t<SquareCell*> path,std::shared_ptr<Graph_t<SquareCell*>> graph){
+    std::vector<int64_t> ids;
+    for(auto& cell: path){
+        ids.push_back(cell->id_);
+    }
+    double entropy_ = GridGraph::EntropyCalculation(ids, graph);
+    return entropy_;
+}
+
+// Compuet entropy
+double GridGraph::EntropyCalculation(std::vector<int64_t> subRegion, std::shared_ptr<Graph_t<SquareCell *>> graph){
+    double entropy_ = 0.0;
+    for (auto& cell_: subRegion){
+        Vertex_t<SquareCell *>* vertex_ = graph->GetVertexFromID(cell_);
+        double p = vertex_->state_->p_;
+        double q = 1.0 - p;
+        if (p == 0.0 || q == 0.0){
+            entropy_ += 0.0;
+        }
+        else{
+            entropy_ += -p * log10(p) - q * log10(q);
+        }
+    }
+    return entropy_;
+}
 
 
 

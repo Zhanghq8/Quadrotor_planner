@@ -122,6 +122,9 @@ namespace librav{
         // Update the edge cost(Required by A*)
         double CalcHeuristic(SquareCell *node1, SquareCell *node2);    
         double CalcHeuristicUncertain(SquareCell *node1, SquareCell *node2); 
+        // Compute the entropy of given path
+        double EntropyPath(Path_t<SquareCell*> path,std::shared_ptr<Graph_t<SquareCell*>> graph);
+        double EntropyCalculation(std::vector<int64_t> subRegion, std::shared_ptr<Graph_t<SquareCell *>> graph);
     }
 }
 
