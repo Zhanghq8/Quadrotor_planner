@@ -24,6 +24,7 @@ int main(int argc, char** argv )
 
     for (int i = 2; i < 6; i++)
 		grid->SetObstacleRegionLabel(i,1);
+    grid->SetObstacleRegionLabel(20,1);
 
 	grid->SetInterestedRegionLabel(14,2);
 	grid->SetInterestedRegionLabel(15,3);

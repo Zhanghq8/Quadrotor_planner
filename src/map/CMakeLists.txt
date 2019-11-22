@@ -3,7 +3,6 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # Dependency libraries
-find_package(OpenCV REQUIRED)
 find_package(PythonLibs 2.7)
 
 # Add libraries
@@ -19,8 +18,8 @@ target_include_directories(map PUBLIC
     $<INSTALL_INTERFACE:include>
     PRIVATE src)
 
-#add_executable(test_grid_map test/test_grid_map.cpp)
-#target_link_libraries(test_grid_map vis map utility ${OpenCV_LIBS})
+add_executable(test_grid_map test/test_grid_map.cpp)
+target_link_libraries(test_grid_map map)
 
 
 

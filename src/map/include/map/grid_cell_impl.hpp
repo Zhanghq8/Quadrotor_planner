@@ -63,8 +63,8 @@ namespace librav{
                 bbox_.y.min = coordinate_.y * vis_side_size;
                 bbox_.y.max = bbox_.y.min + vis_side_size - 1;
 
-                position_.x = coordinate_.x * vis_side_size + vis_side_size/2;
-                position_.y = coordinate_.y * vis_side_size + vis_side_size/2;
+                position_.x = coordinate_.x * vis_side_size + vis_side_size/2.0;
+                position_.y = coordinate_.y * vis_side_size + vis_side_size/2.0;
             }
     };
 }
