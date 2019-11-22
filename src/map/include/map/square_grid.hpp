@@ -33,6 +33,8 @@ namespace librav{
  */    
 
     /*** Square Cell in known envrionment ***/   
+    class AutoVehicle;
+    class TasksSet;
     class SquareCell: public GridCellBase{
         public: 
             SquareCell(int64_t id, int32_t col, int32_t row, OccupancyType _occu): GridCellBase(id, col, row, _occu){
@@ -97,7 +99,7 @@ namespace librav{
             void SetInterestedRegionLabel(int64_t id, int8_t label);
 
             // /*** Uncertain Grid Map ***/
-            // void SetCellProbability(int64_t id, double p);
+            void SetCellProbability(int64_t id, double p);
 
             // /*** Generate random occupancy grid map ***/
             // void SetRandomOccupanyMap(double obstacle_percentage);
@@ -115,7 +117,8 @@ namespace librav{
         // Generate grid and graph with given columns and rows
         std::shared_ptr<SquareGrid> CreateSquareGrid(int32_t row_size, int32_t col_size, double cell_size);
         std::shared_ptr<Graph_t<SquareCell *>> BuildGraphFromSquareGrid(std::shared_ptr<SquareGrid> grid,bool ignore_obs);
-
+        // Generate uncertain graph
+        std::shared_ptr<SquareGrid> CreateSquareGrid(int64_t row_size, int64_t col_size, double cell_size, std::shared_ptr<AutoTeam_t<AutoVehicle>> teams, TasksSet tasks);
         // Update the edge cost(Required by A*)
         double CalcHeuristic(SquareCell *node1, SquareCell *node2);    
         double CalcHeuristicUncertain(SquareCell *node1, SquareCell *node2); 

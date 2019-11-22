@@ -129,26 +129,41 @@ void SquareGrid::SetInterestedRegionLabel(int64_t id, int8_t label){
     current_cell->cell_labels_.AssignRegionLabel(label);
 }
 
+void SquareGrid::SetCellProbability(int64_t id, double p){
+    Position2i vertex_coordinate = GetCoordinateFromID(id);
+    grid_cells_[vertex_coordinate.x][vertex_coordinate.y]->p_ = p;
+   
+    if (grid_cells_[vertex_coordinate.x][vertex_coordinate.y]->p_ == 0.0){
+        grid_cells_[vertex_coordinate.x][vertex_coordinate.y]->occupancy_ = OccupancyType::FREE;
+    }
+    else if(grid_cells_[vertex_coordinate.x][vertex_coordinate.y]->p_ == 1.0){
+        SetObstacleRegionLabel(id, obstacle_label_);
+    }
+    else{
+        grid_cells_[vertex_coordinate.x][vertex_coordinate.y]->occupancy_ = OccupancyType::UNKNOWN;
+    }
+}
+
 std::shared_ptr<SquareGrid> GridGraph::CreateSquareGrid(int32_t row_size, int32_t col_size, double cell_size){
     return std::make_shared<SquareGrid>(row_size,col_size,cell_size);
 }
 
-// std::shared_ptr<SquareGrid> GridGraph::CreateSquareGrid(int64_t row_size, int64_t col_size, double cell_size, std::shared_ptr<AutoTeam_t<AutoVehicle>> teams, TasksSet tasks){
-//     std::shared_ptr<SquareGrid> grid = std::make_shared<SquareGrid>(row_size,col_size,cell_size);
-//     for (int i = 0; i < row_size * col_size; i++){
-// 		grid->SetCellProbability(i,0.5);
-// 	}
-//     for(auto&agent: teams->auto_team_){
-//         grid->SetCellOccupancy(agent->vehicle_.pos_, OccupancyType::FREE);
-//     }
-//     for(auto&tk: tasks.tasks_){
-//         for(auto& pp: tk.pos_){
-//             grid->SetInterestedRegionLabel(pp,tk.AP_label_);	
-// 		    grid->SetCellOccupancy(pp,OccupancyType::INTERESTED);
-//         }
-//     }
-//     return grid;
-// }
+std::shared_ptr<SquareGrid> GridGraph::CreateSquareGrid(int64_t row_size, int64_t col_size, double cell_size, std::shared_ptr<AutoTeam_t<AutoVehicle>> teams, TasksSet tasks){
+    std::shared_ptr<SquareGrid> grid = std::make_shared<SquareGrid>(row_size,col_size,cell_size);
+    for (int i = 0; i < row_size * col_size; i++){
+		grid->SetCellProbability(i,0.5);
+	}
+    for(auto&agent: teams->auto_team_){
+        grid->SetCellOccupancy(agent->pos_, OccupancyType::FREE);
+    }
+    for(auto&tk: tasks.tasks_){
+        for(auto& pp: tk.pos_){
+            grid->SetInterestedRegionLabel(pp,tk.AP_label_);	
+		    grid->SetCellOccupancy(pp,OccupancyType::INTERESTED);
+        }
+    }
+    return grid;
+}
 
 
 std::shared_ptr<Graph_t<SquareCell *>> GridGraph::BuildGraphFromSquareGrid(std::shared_ptr<SquareGrid> grid,bool ignore_obs){

@@ -109,7 +109,7 @@ namespace librav{
             void ComputeLocalHotspots(TasksSet tasks);
             bool IPASConvergence(TasksSet tasks, double threshold=ENTROPY_THRED_);
             Path_t<SquareCell*> PathComputation(TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> true_graph);
-            Path_t<SquareCell*> PathComputation(TasksSet tasks); 
+            // Path_t<SquareCell*> PathComputation(TasksSet tasks); 
             int64_t OPTPathComputation(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> true_graph);
             std::pair<int64_t,double> MinHotSpot();
     };
@@ -117,6 +117,8 @@ namespace librav{
     namespace IPASMeasurement{
         // Generate the AutoTeam
         std::shared_ptr<AutoTeam_t<AutoVehicle>> ConstructAutoTeam(std::vector<AutoVehicle>& teams);
+        // Generate current paths for the AutoTeam
+        std::map<int64_t,Path_t<SquareCell*>> GeneratePaths(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team,TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> graph, TaskType task_type);
     }
 
 

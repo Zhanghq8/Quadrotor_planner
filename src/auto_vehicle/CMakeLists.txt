@@ -23,6 +23,7 @@ target_include_directories(auto_vehicle PUBLIC
 add_executable(test_cbba test/test_cbba.cpp)
 target_link_libraries(test_cbba auto_vehicle map)
 
-
+add_executable(test_ipas test/test_ipas.cpp)
+target_link_libraries(test_ipas auto_vehicle map)
 
 

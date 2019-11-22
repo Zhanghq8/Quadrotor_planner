@@ -248,6 +248,45 @@ void AutoVehicle::BundleAdd(TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>>
     cbba_history_.y_history_.push_back(cbba_y_);  
 }
 
+// Compute the path while satisfying the current task assignment
+Path_t<SquareCell*> AutoVehicle::PathComputation(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> true_graph){
+    Path_t<SquareCell*> path;
+    if (task_path_.empty()){
+        return path;
+    }
+    else{
+        Task final_tk = tasks.GetTaskFromID(task_path_.back());
+        int64_t start_idx = pos_;
+        for(auto& tk_idx: task_path_){
+            Task task = tasks.GetTaskFromID(tk_idx);
+            // Whether vehicle is able to acomplish the task
+            if(vehicle_type_ == task.task_type_){
+                for(auto& pos: task.pos_){
+                    Vertex_t<SquareCell*>* vert = true_graph->GetVertexFromID(pos);
+                    int64_t target_idx = vert->state_->id_;
+                    Path_t<SquareCell*> path_seg;
+                    if(vehicle_type_ == TaskType::RESCUE){
+                        path_seg = AStar::Search(true_graph,start_idx,target_idx,CalcHeuristicFunc_t<SquareCell *>(GridGraph::CalcHeuristicUncertain));
+                    }
+                    else if (vehicle_type_ == TaskType::MEASURE){
+                        path_seg = AStar::SearchIgnoreEdgeCost(true_graph,start_idx,target_idx,CalcHeuristicFunc_t<SquareCell *>(GridGraph::CalcHeuristic));
+                    }
+                    
+                    if(target_idx == final_tk.pos_.back()){
+                        path.insert(path.end(), path_seg.begin(), path_seg.end());
+                    }
+                    else{
+                        path.insert(path.end(), path_seg.begin(), path_seg.end()-1);
+                    }
+                    start_idx = target_idx;
+                }
+            }
+        }
+    }
+    return path;
+}
+
+
 //================================================================================================//
 //=============================================== IPAS ===========================================//
 //================================================================================================//
@@ -272,4 +311,19 @@ std::shared_ptr<AutoTeam_t<AutoVehicle>> IPASMeasurement::ConstructAutoTeam(std:
     return vehicle_group;
 }
 
+std::map<int64_t,Path_t<SquareCell*>> IPASMeasurement::GeneratePaths(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team,TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> graph, TaskType task_type){
+    std::map<int64_t,Path_t<SquareCell*>> paths_map_;
+    for(auto agent: vehicle_team->auto_team_){
+        if (agent->vehicle_type_ == task_type){
+            if(!agent->task_path_.empty()){
+                paths_map_[agent->idx_] = agent->PathComputation(tasks,graph);
+            }
+            else{
+                Path_t<SquareCell*> empty_path_ = {};
+                paths_map_[agent->idx_] = empty_path_;
+            }
+        }    
+    }
+    return paths_map_;
+}
 
