@@ -1,5 +1,5 @@
 /*
- * test_ipas_decentralized.cpp
+ * test_ipas.cpp
  *
  *  Created on: July 29, 2019
  *      Author: jfang
@@ -120,11 +120,8 @@ int main(int argc, char** argv )
         //============================================= IPAS ============================================//
         //===============================================================================================// 
         IPASMeasurement::ComputeHotSpots(vehicle_team_,tasks_);
-        std::cout << "Hot Spots are updated. " <<std::endl;
         TasksSet sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
-        std::cout << "Measurement tasks are constructed. " <<std::endl;
         CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
-        std::cout << "Task assignment among sensing tasks are donw. " <<std::endl;
 
         std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,TaskType::MEASURE);
 

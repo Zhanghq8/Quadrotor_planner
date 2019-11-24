@@ -107,11 +107,7 @@ namespace librav{
             void InitLocalGraph(std::shared_ptr<SquareGrid> grid);
             void UpdateLocalMap(std::shared_ptr<Graph_t<SquareCell*>> graph,TasksSet tasks);
             void ComputeLocalHotspots(TasksSet tasks);
-            // bool IPASConvergence(TasksSet tasks, double threshold=ENTROPY_THRED_);
             Path_t<SquareCell*> PathComputation(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int64_t> tk_path, int64_t init_pos);
-            // Path_t<SquareCell*> PathComputation(TasksSet tasks); 
-            int64_t OPTPathComputation(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> true_graph);
-            std::pair<int64_t,double> MinHotSpot();
 
             std::vector<int64_t> SubRegionComputation(std::map<int64_t, int> config, int64_t sensor_pos, int64_t start_id, int64_t end_id);
             std::vector<int64_t> SubRegionFromPaths(std::vector<Path_t<SquareCell*>> paths);
