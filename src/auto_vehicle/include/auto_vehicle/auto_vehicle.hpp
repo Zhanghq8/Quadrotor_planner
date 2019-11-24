@@ -107,7 +107,7 @@ namespace librav{
             void InitLocalGraph(std::shared_ptr<SquareGrid> grid);
             void UpdateLocalMap(std::shared_ptr<Graph_t<SquareCell*>> graph,TasksSet tasks);
             void ComputeLocalHotspots(TasksSet tasks);
-            bool IPASConvergence(TasksSet tasks, double threshold=ENTROPY_THRED_);
+            // bool IPASConvergence(TasksSet tasks, double threshold=ENTROPY_THRED_);
             Path_t<SquareCell*> PathComputation(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int64_t> tk_path, int64_t init_pos);
             // Path_t<SquareCell*> PathComputation(TasksSet tasks); 
             int64_t OPTPathComputation(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> true_graph);
@@ -124,7 +124,7 @@ namespace librav{
         // Generate current paths for the AutoTeam
         std::map<int64_t,Path_t<SquareCell*>> GeneratePaths(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team,TasksSet tasks,TaskType task_type);
         // Check the convergence of the IPAS
-        bool IPASConvergence(std::shared_ptr<Graph_t<SquareCell*>> graph,std::map<int64_t,Path_t<SquareCell*>> paths_map);
+        bool IPASConvergence(std::shared_ptr<AutoTeam_t<AutoVehicle>> team,std::map<int64_t,Path_t<SquareCell*>> paths_map);
         // Initialize the local grid and local graph for Auto Team
         void InitLocalGraph(std::shared_ptr<AutoTeam_t<AutoVehicle>> team, std::shared_ptr<SquareGrid> grid);
         std::vector<std::map<int64_t, int>> PotentialConfiguration(std::vector<Vertex_t<SquareCell*>*> N_v_);

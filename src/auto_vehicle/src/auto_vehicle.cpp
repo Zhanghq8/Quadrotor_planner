@@ -449,7 +449,7 @@ std::vector<int64_t> AutoVehicle::ComputeNZIGRegion(std::vector<int64_t> sub_dom
         for(auto& negb_vt: neighbors){
             std::vector<int64_t>::iterator it_v = std::find(nzig.begin(),nzig.end(),negb_vt->id_);
             if(it_v == nzig.end()){
-                nzig.push_back(vt);
+                nzig.push_back(negb_vt->id_);
             }
         }
     }
@@ -566,11 +566,11 @@ std::map<int64_t,Path_t<SquareCell*>> IPASMeasurement::GeneratePaths(std::shared
     return paths_map_;
 }
 
-bool IPASMeasurement::IPASConvergence(std::shared_ptr<Graph_t<SquareCell*>> graph,std::map<int64_t,Path_t<SquareCell*>> paths_map){
-    for(auto p: paths_map){
-        if(p.second.empty()){return true;}
-        double en_thre = p.second.size() * ENTROPY_THRED_;
-        double entropy_path = GridGraph::EntropyPath(p.second,graph);
+bool IPASMeasurement::IPASConvergence(std::shared_ptr<AutoTeam_t<AutoVehicle>> team,std::map<int64_t,Path_t<SquareCell*>> paths_map){
+    for(auto vehicle: team->auto_team_){
+        if(paths_map[vehicle->idx_].empty()){return true;}
+        double en_thre = paths_map[vehicle->idx_].size() * ENTROPY_THRED_;
+        double entropy_path = GridGraph::EntropyPath(paths_map[vehicle->idx_],vehicle->local_graph_);
         if(entropy_path > en_thre){return false;}
     }
     return true;

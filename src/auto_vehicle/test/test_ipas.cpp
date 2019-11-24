@@ -46,12 +46,13 @@ int main(int argc, char** argv )
     // Auto Vehicle Team
     // Index of drone, Initial position, # of drones, Communicate network, Task Type, # of tasks
     Eigen::MatrixXi comm = Eigen::MatrixXi::Ones(1,num_vehicle);
-    std::vector<AutoVehicle> drones = {AutoVehicle(0,0,num_vehicle,comm,TaskType::RESCUE,num_tasks),
-                                    AutoVehicle(1,380,num_vehicle,comm,TaskType::RESCUE,num_tasks),
-                                    AutoVehicle(2,399,num_vehicle,comm,TaskType::RESCUE,num_tasks),
-                                    AutoVehicle(3,0,num_vehicle,comm,TaskType::MEASURE,num_tasks),
-                                    AutoVehicle(4,380,num_vehicle,comm,TaskType::MEASURE,num_tasks),
-                                    AutoVehicle(5,399,num_vehicle,comm,TaskType::MEASURE,num_tasks)};
+    int64_t num_sensors = 3;
+    std::vector<AutoVehicle> drones = {AutoVehicle(0,0,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(1,380,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(2,399,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(3,0,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                    AutoVehicle(4,380,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                    AutoVehicle(5,399,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors)};
     
     std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team_ = IPASMeasurement::ConstructAutoTeam(drones);
     //===============================================================================================//
@@ -91,6 +92,7 @@ int main(int argc, char** argv )
     int64_t ipas_tt = 0;
     while (true){
         ipas_tt ++;
+        std::cout << "Iteration: " << ipas_tt << std::endl;
         // Implement the CBBA to determine the task assignment
         CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
         // Compute the path for the auto team while satisfying its local assignment
@@ -112,14 +114,17 @@ int main(int argc, char** argv )
         //=============================================================//
         
         // Check whether the IPAS convergence is achieved
-        bool flag_IPAS = IPASMeasurement::IPASConvergence(uncertain_graph,path_ltl_);
+        bool flag_IPAS = IPASMeasurement::IPASConvergence(vehicle_team_,path_ltl_);
         if (flag_IPAS == true) {std::cout << "The required iteration is " << ipas_tt <<std::endl; break;}
         //===============================================================================================//
         //============================================= IPAS ============================================//
         //===============================================================================================// 
         IPASMeasurement::ComputeHotSpots(vehicle_team_,tasks_);
+        std::cout << "Hot Spots are updated. " <<std::endl;
         TasksSet sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
+        std::cout << "Measurement tasks are constructed. " <<std::endl;
         CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
+        std::cout << "Task assignment among sensing tasks are donw. " <<std::endl;
 
         std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,TaskType::MEASURE);
 
