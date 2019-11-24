@@ -5,12 +5,12 @@
 namespace librav{
 
 	template<typename VehicleType>
-	void CBBA::BundleConstruction(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph){
+	void CBBA::BundleConstruction(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks){
 		for(auto&agent: vehicle_team->auto_team_){
 			agent->BundleRemove();
 		}
 		for(auto&agent: vehicle_team->auto_team_){
-			agent->BundleAdd(tasks,graph);
+			agent->BundleAdd(tasks);
 		}
 	}
 
@@ -388,7 +388,7 @@ namespace librav{
 	}
 
 	template<typename VehicleType>
-	void CBBA::ConsensusBasedBundleAlgorithm(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> graph){
+	void CBBA::ConsensusBasedBundleAlgorithm(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks){
 		bool flag = false;
 		// Init CBBA
 		for(auto&agent: vehicle_team->auto_team_){
@@ -416,7 +416,7 @@ namespace librav{
 			// 	std::cout << std::endl;
 			// 	std::cout << "========================================================" << std::endl;
 			// }
-			CBBA::BundleConstruction(vehicle_team,tasks,graph);
+			CBBA::BundleConstruction(vehicle_team,tasks);
 			// std::cout << "After bundle construction " << std::endl;
 			// for(auto& agent: vehicle_team->auto_team_){
 			// 	std::cout << "Vehicle " << agent->vehicle_.idx_ << std::endl;

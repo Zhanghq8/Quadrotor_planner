@@ -22,7 +22,7 @@ namespace librav{
     namespace CBBA
     {   
         template<typename VehicleType>
-        void BundleConstruction(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team,TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> graph);
+        void BundleConstruction(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team,TasksSet tasks);
 
         template<typename VehicleType>
         void Consensus(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team);
@@ -31,7 +31,7 @@ namespace librav{
         bool CheckConvergence(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team);
 
         template<typename VehicleType>
-        void ConsensusBasedBundleAlgorithm(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> graph);
+        void ConsensusBasedBundleAlgorithm(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks);
     };
 }
 

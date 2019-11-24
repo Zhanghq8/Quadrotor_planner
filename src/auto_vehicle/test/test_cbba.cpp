@@ -79,6 +79,7 @@ int main(int argc, char** argv )
     //===============================================================================================//
     //============================================= CBBA ============================================//
     //===============================================================================================//      
-    CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_,true_graph);
+    IPASMeasurement::InitLocalGraph(vehicle_team_,true_grid);
+    CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
 	return 0;
 }

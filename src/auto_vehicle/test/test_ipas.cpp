@@ -60,8 +60,8 @@ int main(int argc, char** argv )
     // Initialize uncertain map
     int64_t num_row = 20;
     int64_t num_col = 20;
-    std::shared_ptr<SquareGrid> unccertain_grid = GridGraph::CreateSquareGrid(num_row,num_col,1,vehicle_team_,tasks_);
-	std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph = GridGraph::BuildGraphFromSquareGrid(unccertain_grid, true);
+    std::shared_ptr<SquareGrid> uncertain_grid = GridGraph::CreateSquareGrid(num_row,num_col,1,vehicle_team_,tasks_);
+	std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph = GridGraph::BuildGraphFromSquareGrid(uncertain_grid, true);
 
     // Build true map
     std::shared_ptr<SquareGrid> true_grid = GridGraph::CreateSquareGrid(num_row,num_col,1);
@@ -85,21 +85,22 @@ int main(int argc, char** argv )
     std::shared_ptr<Graph_t<SquareCell *>> true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
     //===============================================================================================//
     //============================================= CBBA ============================================//
-    //===============================================================================================//      
-
+    //===============================================================================================//   
+    // Initialize local_grid and local_graph
+    IPASMeasurement::InitLocalGraph(vehicle_team_,uncertain_grid);   
     int64_t ipas_tt = 0;
     while (true){
         ipas_tt ++;
         // Implement the CBBA to determine the task assignment
-        CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_,uncertain_graph);
+        CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
         // Compute the path for the auto team while satisfying its local assignment
-        std::map<int64_t,Path_t<SquareCell*>> path_map_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,uncertain_graph,TaskType::RESCUE);
+        std::map<int64_t,Path_t<SquareCell*>> path_ltl_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,TaskType::RESCUE);
         
         //=============================================================//
         //============================== DEBUG ========================//
         //=============================================================//
         std::cout << "Convergence for task assignment is achieved." << std::endl;
-        for(auto p: path_map_){
+        for(auto p: path_ltl_){
             std::cout << "The path for vehicle " << p.first << " is: ";
             for(auto v: p.second){
                 std::cout << v->id_ <<", ";
@@ -111,12 +112,19 @@ int main(int argc, char** argv )
         //=============================================================//
         
         // Check whether the IPAS convergence is achieved
-        bool flag_IPAS = IPASMeasurement::IPASConvergence(uncertain_graph,path_map_);
-        if (flag_IPAS == true) {break;}
+        bool flag_IPAS = IPASMeasurement::IPASConvergence(uncertain_graph,path_ltl_);
+        if (flag_IPAS == true) {std::cout << "The required iteration is " << ipas_tt <<std::endl; break;}
         //===============================================================================================//
         //============================================= IPAS ============================================//
         //===============================================================================================// 
+        IPASMeasurement::ComputeHotSpots(vehicle_team_,tasks_);
+        TasksSet sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
+        CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
 
+        std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,TaskType::MEASURE);
+
+        IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
+        IPASMeasurement::MergeLocalMap(vehicle_team_);
     }
 	return 0;
 }

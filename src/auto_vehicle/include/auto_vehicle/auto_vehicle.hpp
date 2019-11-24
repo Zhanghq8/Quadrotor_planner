@@ -61,10 +61,10 @@ namespace librav{
             /* IPAS */
             int64_t num_sensors_;
             std::shared_ptr<SquareGrid> local_grid_;
-            // std::shared_ptr<Graph_t<SquareCell*>> local_graph_;
+            std::shared_ptr<Graph_t<SquareCell*>> local_graph_;
             int64_t ipas_iter_;
             std::vector<std::pair<int64_t,double>> hotspots_; 
-            std::map<int64_t,double> nz_ig_zone_;
+            // std::map<int64_t,double> nz_ig_zone_;
 
             std::vector<std::vector<std::pair<int64_t,double>>> history_hspots_;
             
@@ -94,9 +94,9 @@ namespace librav{
             // Bundle Construction Phase
             int64_t FindOptIndeTask();
             void AvailableTasks();
-            void UpdateReward(TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> graph);
+            void UpdateReward(TasksSet tasks);
             double PathCostComputation(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int64_t> tk_path, int64_t init_pos);
-            void BundleAdd(TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> graph);
+            void BundleAdd(TasksSet tasks);
             
             // Bundle Remove phase
             void BundleRemove();
@@ -104,22 +104,39 @@ namespace librav{
 
 
             /* IPAS */
-            void SetLocalMap(std::shared_ptr<SquareGrid> grid);
+            void InitLocalGraph(std::shared_ptr<SquareGrid> grid);
             void UpdateLocalMap(std::shared_ptr<Graph_t<SquareCell*>> graph,TasksSet tasks);
             void ComputeLocalHotspots(TasksSet tasks);
             bool IPASConvergence(TasksSet tasks, double threshold=ENTROPY_THRED_);
-            Path_t<SquareCell*> PathComputation(TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> true_graph);
+            Path_t<SquareCell*> PathComputation(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int64_t> tk_path, int64_t init_pos);
             // Path_t<SquareCell*> PathComputation(TasksSet tasks); 
             int64_t OPTPathComputation(TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> true_graph);
             std::pair<int64_t,double> MinHotSpot();
+
+            std::vector<int64_t> SubRegionComputation(std::map<int64_t, int> config, int64_t sensor_pos, int64_t start_id, int64_t end_id);
+            std::vector<int64_t> SubRegionFromPaths(std::vector<Path_t<SquareCell*>> paths);
+            std::vector<int64_t> ComputeNZIGRegion(std::vector<int64_t> sub_domain);
     };
 
     namespace IPASMeasurement{
         // Generate the AutoTeam
         std::shared_ptr<AutoTeam_t<AutoVehicle>> ConstructAutoTeam(std::vector<AutoVehicle>& teams);
         // Generate current paths for the AutoTeam
-        std::map<int64_t,Path_t<SquareCell*>> GeneratePaths(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team,TasksSet tasks,std::shared_ptr<Graph_t<SquareCell*>> graph, TaskType task_type);
+        std::map<int64_t,Path_t<SquareCell*>> GeneratePaths(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team,TasksSet tasks,TaskType task_type);
+        // Check the convergence of the IPAS
         bool IPASConvergence(std::shared_ptr<Graph_t<SquareCell*>> graph,std::map<int64_t,Path_t<SquareCell*>> paths_map);
+        // Initialize the local grid and local graph for Auto Team
+        void InitLocalGraph(std::shared_ptr<AutoTeam_t<AutoVehicle>> team, std::shared_ptr<SquareGrid> grid);
+        std::vector<std::map<int64_t, int>> PotentialConfiguration(std::vector<Vertex_t<SquareCell*>*> N_v_);
+        // Update the local hotspots for AutoTeam
+        void ComputeHotSpots(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team, TasksSet tasks);
+        // Check whether the whole Auto Team is informed with the latest information
+        bool MapMergeConvergence(std::shared_ptr<AutoTeam_t<AutoVehicle>> teams);
+        // Construct the measurement tasks
+        TasksSet ConstructMeasurementTasks(std::shared_ptr<AutoTeam_t<AutoVehicle>> team);
+        // Update the local graph for AutoTeam based on latest measurements
+        void UpdateLocalMap(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team,std::shared_ptr<Graph_t<SquareCell*>> true_graph,TasksSet tasks);
+        void MergeLocalMap(std::shared_ptr<AutoTeam_t<AutoVehicle>> teams);
     }
 
 

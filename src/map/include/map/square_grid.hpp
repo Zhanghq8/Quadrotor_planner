@@ -31,10 +31,14 @@ namespace librav{
  *  v y	v 
  *		<<		   column       >>
  */    
+    // Define pre-defined parameter
+    const double sensor_accuracy = 0.8;
+    const double cell_accurancy_ = 0.01;
 
     /*** Square Cell in known envrionment ***/   
     class AutoVehicle;
     class TasksSet;
+    class SquareGrid;
     class SquareCell: public GridCellBase{
         public: 
             SquareCell(int64_t id, int32_t col, int32_t row, OccupancyType _occu): GridCellBase(id, col, row, _occu){
@@ -59,7 +63,7 @@ namespace librav{
             int32_t GetCellBitMap();     
 
             // Compute the information gain for each square cell
-            // void ComputeIG(std::shared_ptr<SquareGrid> grid, std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int64_t> subRegion);
+            void ComputeIG(std::shared_ptr<SquareGrid> grid, std::shared_ptr<Graph_t<SquareCell*>> graph, std::vector<int64_t> subRegion);
     };
 
     class SquareGrid{
@@ -107,7 +111,7 @@ namespace librav{
             // TasksList SetRandomTasks(int num_Tasks_inde, int num_Tasks_de);
             // bool OccupancyGridMapValidity(std::vector<Agent> agents, TasksList tasks, std::shared_ptr<Graph_t<SquareCell*>> graph);
             // bool OccupancyGridMapValidity(std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team, TasksSet tasks, std::shared_ptr<Graph_t<SquareCell*>> graph);
-            // std::shared_ptr<SquareGrid> DuplicateSquareGrid();
+            std::shared_ptr<SquareGrid> DuplicateSquareGrid();
 
             // TasksSet ConstructRandomLTLTasks(int64_t num_tasks);
             // std::shared_ptr<AutoTeam_t<AutoVehicle>> ConstructRandomAutoTeam(int64_t num_actors, int64_t num_sensors, int64_t num_tasks);
@@ -125,6 +129,14 @@ namespace librav{
         // Compute the entropy of given path
         double EntropyPath(Path_t<SquareCell*> path,std::shared_ptr<Graph_t<SquareCell*>> graph);
         double EntropyCalculation(std::vector<int64_t> subRegion, std::shared_ptr<Graph_t<SquareCell *>> graph);
+        // Bayesian Filter
+        double UpdateBelProbability(double p,int status);
+        // Compute the entropy of subregion with potential configuration
+        double EntropyPotentialConfig(std::vector<int64_t> subRegion, std::shared_ptr<SquareGrid> grid, std::map<int64_t, int> config_, int64_t sensor_pos_);
+        double MeasurementProbability(std::shared_ptr<Graph_t<SquareCell*>> graph, std::map<int64_t, int> config);
+        // Sensors selection
+        std::vector<int64_t> SelectSensorsPos(int64_t num_sensors, std::shared_ptr<Graph_t<SquareCell *>> graph);
+        int64_t SensorPosFromMissProbability(std::vector<int64_t> sensors_pos_,std::vector<int64_t> list_max_ig, std::shared_ptr<Graph_t<SquareCell*>> graph);
     }
 }
 
