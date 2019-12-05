@@ -22,6 +22,7 @@ void Controller_tracking::initVec() {
     switchFlag01 = vector<bool> (3, false);
     switchFlag12 = vector<bool> (3, false);
     switchFlag23 = vector<bool> (3, false);
+    pidFlag = vector<bool> (3, false);
     // path = vector<vector<vector<Vec2i>>> (drone_num);
 }
 
@@ -200,6 +201,12 @@ void Controller_tracking::currentpos1Callback(const geometry_msgs::PoseStamped& 
             // else {
             //     xyvelocity[i][0] = v;
             // }
+
+            // if (pidFlag[i]) {
+            //     xyvelocity[i][0] = kp*errorvector[i][1] + ki*errorvector[i][2] + kd*errorvector[i][3];
+            // } else {
+            //     xyvelocity[i][0] = v;
+            // }
             xyvelocity[i][0] = kp*errorvector[i][1] + ki*errorvector[i][2] + kd*errorvector[i][3];
             if (xyvelocity[i][0] > v) {
                 xyvelocity[i][0] = v;
@@ -251,6 +258,11 @@ void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1
                     else {   
                         std::cout << "1Waypoint " << waypoint_cnt[i] << " reached. " << std::endl;
                         // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
+                        if (waypoint_cnt[i] == sensorPath[i][1].size() - 1) {
+                            pidFlag[i] = true;
+                        } else {
+                            pidFlag[i] = false;
+                        }
                         waypoint_cnt[i]++;
                         goalposvector[i][0] = sensorPath[i][0][waypoint_cnt[i]-1].x;
                         goalposvector[i][1] = sensorPath[i][0][waypoint_cnt[i]-1].y;
@@ -289,6 +301,11 @@ void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2
                         else {   
                             std::cout << "2Waypoint " << waypoint_cnt[i] << " reached. " << std::endl;
                             // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
+                            if (waypoint_cnt[i] == sensorPath[i][1].size() - 1) {
+                                pidFlag[i] = true;
+                            } else {
+                                pidFlag[i] = false;
+                            }
                             waypoint_cnt[i]++;
                             goalposvector[i][0] = sensorPath[i][1][waypoint_cnt[i]-1].x;
                             goalposvector[i][1] = sensorPath[i][1][waypoint_cnt[i]-1].y;
@@ -327,6 +344,11 @@ void Controller_tracking::event3Callback(const geometry_msgs::PoseStamped& odom3
                         } else {   
                             std::cout << "3Waypoint " << waypoint_cnt[i] << " reached. " << std::endl;
                             // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
+                            if (waypoint_cnt[i] == sensorPath[i][1].size() - 1) {
+                                pidFlag[i] = true;
+                            } else {
+                                pidFlag[i] = false;
+                            }
                             waypoint_cnt[i]++;
                             goalposvector[i][0] = sensorPath[i][2][waypoint_cnt[i]-1].x;
                             goalposvector[i][1] = sensorPath[i][2][waypoint_cnt[i]-1].y;

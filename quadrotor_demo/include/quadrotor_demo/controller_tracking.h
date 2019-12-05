@@ -33,6 +33,8 @@ private:
     // bool ready_flag_3 = false;
     bool ready_flag = false;
 
+    vector<bool> pidFlag;
+
     vector<bool> switchFlag01;
     vector<bool> switchFlag12;
     vector<bool> switchFlag23;
@@ -102,7 +104,7 @@ public:
     // void setreadyflag();
 
     void setpidgains(double p=0.5, double i=0.00, double d=0.0);
-    void setvelocity(double x=0.8);
+    void setvelocity(double x=0.6);
     void setdronenum(int x=3);
     // void setpath();
     
