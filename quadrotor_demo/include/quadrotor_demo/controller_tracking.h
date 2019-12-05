@@ -96,7 +96,6 @@ public:
     Controller_tracking(ros::NodeHandle* nodehandle);
 
     void setgoalpos();
-    void setwaypoint_cnt();
     void initSub(); 
     void initPub();
     void initVec();
@@ -112,8 +111,8 @@ public:
     void currentpos2Callback(const geometry_msgs::PoseStamped& odom2);
     void currentpos3Callback(const geometry_msgs::PoseStamped& odom3);
     void event1Callback(const geometry_msgs::PoseStamped& odom1);
-    void event2Callback(const geometry_msgs::PoseStamped& odom1);
-    void event3Callback(const geometry_msgs::PoseStamped& odom1); 
+    void event2Callback(const geometry_msgs::PoseStamped& odom2);
+    void event3Callback(const geometry_msgs::PoseStamped& odom3); 
     void pathCallback(const quadrotor_demo::final_path& path);
 
 };
