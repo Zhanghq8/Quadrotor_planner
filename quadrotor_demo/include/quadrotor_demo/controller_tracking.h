@@ -27,12 +27,19 @@ private:
     int drone_num;
     // max control input for linear velocity
     double v; 
-    bool start_flag = true;
-    bool ready_flag_1 = false;
-    bool ready_flag_2 = false;
-    bool ready_flag_3 = false;
+    bool start_flag = false;
+    // bool ready_flag_1 = false;
+    // bool ready_flag_2 = false;
+    // bool ready_flag_3 = false;
     bool ready_flag = false;
 
+    vector<bool> switchFlag01;
+    vector<bool> switchFlag12;
+    vector<bool> switchFlag23;
+
+    bool switchFlag0 = false;
+    bool switchFlag1 = false;
+    bool switchFlag2 = false;
     // pid gain parameters
     double kp;
     double kd;
@@ -40,6 +47,8 @@ private:
     double d=1.0;
 
     vector<int> waypoint_cnt;
+    // vector<int> waypoint_cnt2;
+    // vector<int> waypoint_cnt3;
 
     struct Vec2i
     {   
@@ -74,7 +83,9 @@ private:
     ros::Subscriber current2pos_sub_;
     ros::Subscriber current3pos_sub_;
     ros::Subscriber path_sub_;
-    ros::Subscriber stop_sub_;
+    ros::Subscriber event1_sub_;
+    ros::Subscriber event2_sub_;
+    ros::Subscriber event3_sub_;
     ros::Publisher control1input_pub_;
     ros::Publisher control2input_pub_;
     ros::Publisher control3input_pub_;
@@ -100,7 +111,9 @@ public:
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
     void currentpos2Callback(const geometry_msgs::PoseStamped& odom2);
     void currentpos3Callback(const geometry_msgs::PoseStamped& odom3);
-    void eventCallback(const geometry_msgs::PoseStamped& odom1); 
+    void event1Callback(const geometry_msgs::PoseStamped& odom1);
+    void event2Callback(const geometry_msgs::PoseStamped& odom1);
+    void event3Callback(const geometry_msgs::PoseStamped& odom1); 
     void pathCallback(const quadrotor_demo::final_path& path);
 
 };

@@ -11,7 +11,7 @@ Controller_tracking::Controller_tracking(ros::NodeHandle* nodehandle):nh_(*nodeh
     initSub();
     initPub();
     // setpath();
-    setgoalpos();
+    // setgoalpos();
     
 }
 
@@ -22,20 +22,23 @@ void Controller_tracking::initVec() {
 
     diffvector = vector<vector<double>> (drone_num, vector<double> (3, 0));
     xyvelocity = vector<vector<double>> (drone_num, vector<double> (3, 0));
+    switchFlag01 = vector<bool> (3, false);
+    switchFlag12 = vector<bool> (3, false);
+    switchFlag23 = vector<bool> (3, false);
     // path = vector<vector<vector<Vec2i>>> (drone_num);
 }
 
-void Controller_tracking::setgoalpos()
-{   
-    // for (int i=0; i<drone_num; i++) {
-    //     if (!path[i].empty() && !path[i][0].empty()) {
-
-    //     }
-    //     goalposvector[i][0] = path[i][0].x;
-    //     goalposvector[i][1] = path[i][0].y;
-    //     // cout << "Setting goal point as " << i << " (" << goalposvector[i][0] << "," << goalposvector[i][1] << ")." << endl;
-    // }
-
+void Controller_tracking::setgoalpos() {   
+    for (int i=0; i<drone_num; i++) {
+        if (!sensorPath[i].empty() && !sensorPath[i][0].empty()) {
+            goalposvector[i][0] = sensorPath[i][0][0].x;
+            goalposvector[i][1] = sensorPath[i][0][0].y;
+        } else {
+            goalposvector[i][0] = posvector[i][0];
+            goalposvector[i][1] = posvector[i][1];
+        }
+        std::cout << "Setting goal point as " << i << " (" << goalposvector[i][0] << "," << goalposvector[i][1] << ")." << std::endl;
+    }
 }
 
 void Controller_tracking::setwaypoint_cnt()
@@ -65,7 +68,9 @@ void Controller_tracking::setdronenum(int num) {
 
 void Controller_tracking::initSub() {
     // ROS_INFO("Initializing Subscribers");  
-    stop_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &Controller_tracking::eventCallback,this);
+    event1_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &Controller_tracking::event1Callback,this);
+    event2_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &Controller_tracking::event1Callback,this);
+    event3_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &Controller_tracking::event1Callback,this);
     current1pos_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &Controller_tracking::currentpos1Callback,this);
     current2pos_sub_ = nh_.subscribe("/drone2/ground_truth_to_tf/pose", 1, &Controller_tracking::currentpos2Callback,this);
     current3pos_sub_ = nh_.subscribe("/drone3/ground_truth_to_tf/pose", 1, &Controller_tracking::currentpos3Callback,this);
@@ -83,7 +88,6 @@ void Controller_tracking::initPub() {
 
 void Controller_tracking::pathCallback(const quadrotor_demo::final_path& path) {
     sensorPath = {};
-
     for(std::vector<quadrotor_demo::pathes>::const_iterator itr = path.final_path.begin(); itr != path.final_path.end(); ++itr) {   
         bool isEmpty = itr->empty;
         string name = itr->path_name;
@@ -110,6 +114,8 @@ void Controller_tracking::pathCallback(const quadrotor_demo::final_path& path) {
             sensorPath.emplace_back(singleSensorPath);
         }
     }
+    std::cout << sensorPath[0].size() << " " << sensorPath[1].size() << sensorPath[2].size() << std::endl; 
+    start_flag = true;
     //============================== DEBUG ========================//
     //=============================================================//
     // for (int i=0; i<sensorPath.size(); i++) {
@@ -125,7 +131,7 @@ void Controller_tracking::pathCallback(const quadrotor_demo::final_path& path) {
     // std::cout << "sensorPath size:" << sensorPath.size() << std::endl;
     //=============================================================//
     //=============================================================//
-    
+    setgoalpos();
 }
 
 void Controller_tracking::currentpos3Callback(const geometry_msgs::PoseStamped& odom3) {
@@ -157,33 +163,35 @@ void Controller_tracking::currentpos1Callback(const geometry_msgs::PoseStamped& 
     posvector[0][5] = odom1.pose.orientation.z;
     posvector[0][6] = odom1.pose.orientation.w;
 
-    vector<double> pose_error(drone_num, 0);
-    // if (start_flag == true && ready_flag == true) {
-    for (int i=0; i<drone_num; i++) {
-        for (int j=0; j<diffvector[i].size(); j++) {
-            // cout << i << ", " << j << " " << goalposvector[i][j] << " " << posvector[i][j] << endl;
-            if (j == int(diffvector[i].size()) - 1) {
-                diffvector[i][j] = atan2(diffvector[i][j-1], diffvector[i][j-2]);
-                pose_error[0] += sqrt(diffvector[i][j-1]*diffvector[i][j-1] + diffvector[i][j-2]*diffvector[i][j-2]);
-            }
-            else {
-                diffvector[i][j] = goalposvector[i][j] - posvector[i][j];
+    std_msgs::Bool flag;
+    flag.data = switchFlag2;
+    ready_flag_pub_.publish(flag);
+
+    // set a flag in case this run before we get a path
+
+    if (start_flag == true) {  
+        std::cout << "start" << std::endl;
+        vector<double> pose_error(drone_num, 0);
+        // if (start_flag == true && ready_flag == true) {
+        for (int i=0; i<drone_num; i++) {
+            for (int j=0; j<diffvector[i].size(); j++) {
+                // cout << i << ", " << j << " " << goalposvector[i][j] << " " << posvector[i][j] << endl;
+                if (j == int(diffvector[i].size()) - 1) {
+                    diffvector[i][j] = atan2(diffvector[i][j-1], diffvector[i][j-2]);
+                    pose_error[0] += sqrt(diffvector[i][j-1]*diffvector[i][j-1] + diffvector[i][j-2]*diffvector[i][j-2]);
+                }                 else {
+                    diffvector[i][j] = goalposvector[i][j] - posvector[i][j];
+                }
             }
         }
-    }
     
-    if ((ready_flag_1 && ready_flag_2 && ready_flag_3) || (goalposvector[0][0] == 0 && goalposvector[2][0] == 0 && goalposvector[2][1] == 0)) {
-        ready_flag = true;
-    }
-    else {
-        ready_flag = false;
-    }
+    // if ((ready_flag_1 && ready_flag_2 && ready_flag_3)) {
+    //     ready_flag = true;
+    // }
+    // else {
+    //     ready_flag = false;
+    // }
 
-    std_msgs::Bool flag;
-    flag.data = ready_flag;
-    ready_flag_pub_.publish(flag);
-    
-    if (start_flag == true) {
         //e_k, e_P, e_I, e_D, E_k, e_k_previous 
         for (int i=0; i<drone_num; i++) {
             errorvector[i][0] = sqrt(diffvector[i][0]*diffvector[i][0] + diffvector[i][1]*diffvector[i][1]);
@@ -206,14 +214,14 @@ void Controller_tracking::currentpos1Callback(const geometry_msgs::PoseStamped& 
             // else {
             //     xyvelocity[i][0] = v;
             // }
-            // xyvelocity[i][0] = kp*errorvector[i][1] + ki*errorvector[i][2] + kd*errorvector[i][3];
+            xyvelocity[i][0] = kp*errorvector[i][1] + ki*errorvector[i][2] + kd*errorvector[i][3];
             if (xyvelocity[i][0] > v) {
                 xyvelocity[i][0] = v;
             }
             xyvelocity[i][1] = xyvelocity[i][0] * cos(diffvector[i][diffvector[i].size()-1]);
             xyvelocity[i][2] = xyvelocity[i][0] * sin(diffvector[i][diffvector[i].size()-1]);
-            // cout << "drone " << i << ": vx, " << xyvelocity[i][1];
-            // cout << "drone " << i << ": vy, " << xyvelocity[i][2];
+            cout << "drone " << i << ": vx, " << xyvelocity[i][1];
+            cout << "drone " << i << ": vy, " << xyvelocity[i][2];
         }
 
         // drone1
@@ -237,73 +245,179 @@ void Controller_tracking::currentpos1Callback(const geometry_msgs::PoseStamped& 
         
 
     }    
-};
-void Controller_tracking::eventCallback(const geometry_msgs::PoseStamped& odom1) 
-{   
-    // for (int i=0; i<drone_num; i++) {
+}
 
-    //     int pathsize = path[i].size();
-    //     // cout << "Xc pose: " << currentpos.x << " Xg pose: " << goalpos.x << " Yc pose: " << posvector[i][1] << " Yg pose: "<< goalpos.y <<endl;
-    //     if ((abs(posvector[i][0] - goalposvector[i][0])<d*0.1) && (abs(posvector[i][1] - goalposvector[i][1])<d*0.1 ) 
-    //         && (posvector[i][0] * goalposvector[i][0] > 0.01))
-    //     {   
-    //         if (i == 0) {
-    //             if (waypoint_cnt[i] == pathsize) {
-    //                 control1input.linear.x = 0.0;
-    //                 control1input.linear.y = 0.0;
-    //                 control1input.linear.z = 0.0;
-    //                 control1input_pub_.publish(control1input);
-    //                 ready_flag_1 = true;
-    //                 // ROS_INFO("Finished...");
-    //                 // ros::shutdown();
-    //             }
-    //             else {   
-    //                 // cout << "Waypoint " << waypoint_cnt[i] << " reached. ";
-    //                 // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
-    //                 waypoint_cnt[i]++;
-    //                 goalposvector[i][0] = path[i][waypoint_cnt[i]-1].x;
-    //                 goalposvector[i][1] = path[i][waypoint_cnt[i]-1].y;
-    //             }
-    //         }
-    //         else if (i == 1) {
-    //             if (waypoint_cnt[i] == pathsize) {
-    //                 control2input.linear.x = 0.0;
-    //                 control2input.linear.y = 0.0;
-    //                 control2input.linear.z = 0.0;
-    //                 control2input_pub_.publish(control2input);
-    //                 ready_flag_2 = true;
-    //                 // ROS_INFO("Finished...");
-    //                 // ros::shutdown();
-    //             }
-    //             else {   
-    //                 // cout << "Waypoint " << waypoint_cnt[i] << " reached. ";
-    //                 // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
-    //                 waypoint_cnt[i]++;
-    //                 goalposvector[i][0] = path[i][waypoint_cnt[i]-1].x;
-    //                 goalposvector[i][1] = path[i][waypoint_cnt[i]-1].y;
-    //             }
-    //         }
-    //         else {
-    //             if (waypoint_cnt[i] == pathsize) {
-    //                     control3input.linear.x = 0.0;
-    //                     control3input.linear.y = 0.0;
-    //                     control3input.linear.z = 0.0;
-    //                     control3input_pub_.publish(control3input);
-    //                     ready_flag_3 = true;
-    //                     // ROS_INFO("Finished...");
-    //                     // ros::shutdown();
-    //             }
-    //             else {   
-    //                 // cout << "Waypoint " << waypoint_cnt[i] << " reached. ";
-    //                 // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
-    //                 waypoint_cnt[i]++;
-    //                 goalposvector[i][0] = path[i][waypoint_cnt[i]-1].x;
-    //                 goalposvector[i][1] = path[i][waypoint_cnt[i]-1].y;
-    //             }
-    //         }
+void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1) {
+    std::cout << switchFlag1 << " " << switchFlag2 << " " << start_flag << std::endl;
+    if (switchFlag1 || switchFlag2 || !start_flag) {
+        return;
+    }
+    for (int i=0; i<drone_num; i++) {
+        std::cout << "working" << std::endl;
+        // check if the there is task for dronei
+        if (!sensorPath[i].empty()) {
 
-    //     }
-    // }
+            if (!sensorPath[i][0].empty()) {
+                if ((abs(posvector[i][0] - goalposvector[i][0])<d*0.1) && (abs(posvector[i][1] - goalposvector[i][1])<d*0.1) 
+                    && (posvector[i][0] * goalposvector[i][0] > 0.01)) {
+                    if (waypoint_cnt[i] == sensorPath[i][0].size()) {
+                        control1input.linear.x = 0.0;
+                        control1input.linear.y = 0.0;
+                        control1input.linear.z = 0.0;
+                        control1input_pub_.publish(control1input);
+                        switchFlag01[i] = true;
+                    }
+                    else {   
+                        cout << "Waypoint " << waypoint_cnt[i] << " reached. ";
+                        // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
+                        waypoint_cnt[i]++;
+                        goalposvector[i][0] = sensorPath[i][0][waypoint_cnt[i]-1].x;
+                        goalposvector[i][1] = sensorPath[i][0][waypoint_cnt[i]-1].y;
+                    }
+                }
+            }
+            switchFlag0 = switchFlag01[0] && switchFlag01[1] && switchFlag01[2];
+            if (switchFlag0) {
+                waypoint_cnt = vector<int> (drone_num, 1);
+            }
+
+            // for (int j=0; j<sensorPath[i].size(); j++) {
+            //                 // cout << "Xc pose: " << currentpos.x << " Xg pose: " << goalpos.x << " Yc pose: " << posvector[i][1] << " Yg pose: "<< goalpos.y <<endl;
+            //     if ((abs(posvector[i][0] - goalposvector[i][0])<d*0.1) && (abs(posvector[i][1] - goalposvector[i][1])<d*0.1 ) 
+            //         && (posvector[i][0] * goalposvector[i][0] > 0.01))
+            //     {   
+            //         if (i == 0) {
+            //             if (waypoint_cnt[i] == pathsize) {
+            //                 control1input.linear.x = 0.0;
+            //                 control1input.linear.y = 0.0;
+            //                 control1input.linear.z = 0.0;
+            //                 control1input_pub_.publish(control1input);
+            //                 ready_flag_1 = true;
+            //                 // ROS_INFO("Finished...");
+            //                 // ros::shutdown();
+            //             }
+            //             else {   
+            //                 // cout << "Waypoint " << waypoint_cnt[i] << " reached. ";
+            //                 // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
+            //                 waypoint_cnt[i]++;
+            //                 goalposvector[i][0] = path[i][waypoint_cnt[i]-1].x;
+            //                 goalposvector[i][1] = path[i][waypoint_cnt[i]-1].y;
+            //             }
+            //         }
+            //         else if (i == 1) {
+            //             if (waypoint_cnt[i] == pathsize) {
+            //                 control2input.linear.x = 0.0;
+            //                 control2input.linear.y = 0.0;
+            //                 control2input.linear.z = 0.0;
+            //                 control2input_pub_.publish(control2input);
+            //                 ready_flag_2 = true;
+            //                 // ROS_INFO("Finished...");
+            //                 // ros::shutdown();
+            //             }
+            //             else {   
+            //                 // cout << "Waypoint " << waypoint_cnt[i] << " reached. ";
+            //                 // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
+            //                 waypoint_cnt[i]++;
+            //                 goalposvector[i][0] = path[i][waypoint_cnt[i]-1].x;
+            //                 goalposvector[i][1] = path[i][waypoint_cnt[i]-1].y;
+            //             }
+            //         }
+            //         else {
+            //             if (waypoint_cnt[i] == pathsize) {
+            //                     control3input.linear.x = 0.0;
+            //                     control3input.linear.y = 0.0;
+            //                     control3input.linear.z = 0.0;
+            //                     control3input_pub_.publish(control3input);
+            //                     ready_flag_3 = true;
+            //                     // ROS_INFO("Finished...");
+            //                     // ros::shutdown();
+            //             }
+            //             else {   
+            //                 // cout << "Waypoint " << waypoint_cnt[i] << " reached. ";
+            //                 // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
+            //                 waypoint_cnt[i]++;
+            //                 goalposvector[i][0] = path[i][waypoint_cnt[i]-1].x;
+            //                 goalposvector[i][1] = path[i][waypoint_cnt[i]-1].y;
+            //             }
+            //         }
+
+            //     }
+            // }
+
+        }
+        
+    }
+}
+
+void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom1) {
+    if (switchFlag1 && !switchFlag2 && start_flag) {
+        for (int i=0; i<drone_num; i++) {
+
+        // check if the there is task for dronei
+            if (!sensorPath[i].empty()) {
+
+                if (!sensorPath[i][1].empty()) {
+                    if ((abs(posvector[i][0] - goalposvector[i][0])<d*0.1) && (abs(posvector[i][1] - goalposvector[i][1])<d*0.1 ) 
+                        && (posvector[i][0] * goalposvector[i][0] > 0.01)) {
+                        if (waypoint_cnt[i] == sensorPath[i][1].size()) {
+                            control1input.linear.x = 0.0;
+                            control1input.linear.y = 0.0;
+                            control1input.linear.z = 0.0;
+                            control1input_pub_.publish(control1input);
+                            switchFlag12[i] = true;
+                        }
+                        else {   
+                            // cout << "Waypoint " << waypoint_cnt[i] << " reached. ";
+                            // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
+                            waypoint_cnt[i]++;
+                            goalposvector[i][0] = sensorPath[i][1][waypoint_cnt[i]-1].x;
+                            goalposvector[i][1] = sensorPath[i][1][waypoint_cnt[i]-1].y;
+                        }
+                    }
+                }
+                switchFlag1 = switchFlag12[0] && switchFlag12[1] && switchFlag12[2];
+                if (switchFlag1) {
+                    waypoint_cnt = vector<int> (drone_num, 1);
+                }
+            }
+        }
+    }
+    
+}
+void Controller_tracking::event3Callback(const geometry_msgs::PoseStamped& odom1) {
+    if (switchFlag1 && switchFlag2 && start_flag) {
+        for (int i=0; i<drone_num; i++) {
+
+        // check if the there is task for dronei
+            if (!sensorPath[i].empty()) {
+
+                if (!sensorPath[i][2].empty()) {
+                    if ((abs(posvector[i][0] - goalposvector[i][0])<d*0.1) && (abs(posvector[i][1] - goalposvector[i][1])<d*0.1 ) 
+                        && (posvector[i][0] * goalposvector[i][0] > 0.01)) {
+                        if (waypoint_cnt[i] == sensorPath[i][2].size()) {
+                            control1input.linear.x = 0.0;
+                            control1input.linear.y = 0.0;
+                            control1input.linear.z = 0.0;
+                            control1input_pub_.publish(control1input);
+                            switchFlag01[i] = true;
+                        }
+                        else {   
+                            // cout << "Waypoint " << waypoint_cnt[i] << " reached. ";
+                            // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
+                            waypoint_cnt[i]++;
+                            goalposvector[i][0] = sensorPath[i][2][waypoint_cnt[i]-1].x;
+                            goalposvector[i][1] = sensorPath[i][2][waypoint_cnt[i]-1].y;
+                        }
+                    }
+                }
+                switchFlag2 = switchFlag23[0] && switchFlag23[1] && switchFlag23[2];
+                if (switchFlag2) {
+                    waypoint_cnt = vector<int> (drone_num, 1);
+                    start_flag = false;
+                }
+            }
+        }
+    }
 };
 
 
