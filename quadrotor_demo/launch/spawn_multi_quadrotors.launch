@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <!-- Start Gazebo with wg world running in (max) realtime -->
+  <!-- <include file="$(find gazebo_ros)/launch/empty_world.launch"/> -->
+  <include file="$(find quadrotor_demo)/launch/testworld.launch"/>
+  <param name="robot_description"
+    command="$(find xacro)/xacro $(find hector_quadrotor_description)/urdf/quadrotor_hokuyo_downcam.gazebo.xacro" />
+  <!-- Spawn simulated quadrotor uav -->
+  <group ns="drone1">
+    <!-- <param name="tf_prefix" value="drone1" /> -->
+    <include file="$(find hector_quadrotor_gazebo)/launch/spawn_quadrotor.launch" >
+      <arg name="model" value="$(find hector_quadrotor_description)/urdf/quadrotor_hokuyo_downcam.gazebo.xacro"/>
+      <arg name="tf_prefix" value="/drone1" />
+      <arg name="x" value="0"/>
+      <arg name="y" value="0"/>
+      <arg name="z" value="0"/>
+      <arg name="controllers" value=" controller/attitude controller/velocity controller/position "/>
+      <arg name="name"  value="drone1" />
+    </include>
+  </group>
+
+  <!-- BEGIN ROBOT 2-->
+  <group ns="drone2">
+    <!-- <param name="tf_prefix" value="drone2" /> -->
+    <include file="$(find hector_quadrotor_gazebo)/launch/spawn_quadrotor.launch" >
+      <arg name="model" value="$(find hector_quadrotor_description)/urdf/quadrotor_hokuyo_downcam.gazebo.xacro"/>
+      <arg name="tf_prefix" value="/drone2" />
+      <arg name="x" value="10"/>
+      <arg name="y" value="-10"/>
+      <arg name="z" value="0"/>
+      <arg name="controllers" value=" controller/attitude controller/velocity controller/position "/>
+      <arg name="name"  value="drone2" />
+    </include>
+  </group>
+
+  <group ns="drone3">
+    <!-- <param name="tf_prefix" value="drone3" /> -->
+    <include file="$(find hector_quadrotor_gazebo)/launch/spawn_quadrotor.launch" >
+      <arg name="model" value="$(find hector_quadrotor_description)/urdf/quadrotor_hokuyo_downcam.gazebo.xacro"/>
+      <arg name="tf_prefix" value="/drone3" />
+      <arg name="x" value="-10"/>
+      <arg name="y" value="-10"/>
+      <arg name="z" value="0"/>
+      <arg name="controllers" value=" controller/attitude controller/velocity controller/position "/>
+      <arg name="name"  value="drone3" />
+    </include>
+  </group>
+
+  <!-- Start rviz visualization with preset config -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find quadrotor_demo)/rviz_cfg/with_downward_cam.rviz"/>
+
+  <node pkg="rosservice" type="rosservice" name="global_loc1" args="call --wait /drone1/enable_motors '{enable: true}'" />
+
+  <node pkg="rosservice" type="rosservice" name="global_loc2" args="call --wait /drone2/enable_motors '{enable: true}'" />
+
+  <node pkg="rosservice" type="rosservice" name="global_loc3" args="call --wait /drone3/enable_motors '{enable: true}'" />
+
+<!--   <include file="$(find hector_quadrotor_teleop)/launch/xbox_controller.launch" >
+    <arg name="control_mode" value="position"/>
+  </include> -->
+</launch>
