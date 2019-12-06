@@ -3,6 +3,7 @@
 LocalMapUpdate::LocalMapUpdate(ros::NodeHandle* nodehandle1, ros::NodeHandle* nodehandle2, string str): 
 			nh_(*nodehandle1), it_(*nodehandle2), topic(str) {
     updateFlag = false;
+    updateCompleteFlag = false;
     initSub();
     initPub();
 }
@@ -37,9 +38,10 @@ void LocalMapUpdate::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
         return;
     }
     cout << "---------------------" << endl;
-    cout << "---------------------" << endl;
     cout << "For rostopic: " << topic << endl;
     if (updateFlag) {
+        ros::Rate loop_rate(0.5);
+        loop_rate.sleep();
     	filter(colorImg);
     }
 }
@@ -52,8 +54,7 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     // grid number to coordinates
     unordered_map<int, pair<int,int>> coordinates({ {0,{-1,-1}}, {1,{0,-1}}, {2, {1,-1}} ,
                                                     {3,{-1,0}}, {4,{0,0}}, {5,{1,0}},
-                                                    {6,{-1,1}}, {7,{0,-1}}, {8,{1,1}}
-                                                    });
+                                                    {6,{-1,1}}, {7,{0,-1}}, {8,{1,1}} });
     // grid number vector
     vector<vector<bool>> occupancy(3, vector<bool> (3, false));
     vector<int> cover(9, 0);  
@@ -145,108 +146,114 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     }
     cout << endl;
 
-    ThresholdedImg = Imgcopy;
+    updateCompleteFlag = true;
+    std_msgs::Bool ucf;
+    ucf.data = updateCompleteFlag;
+    update_complete_pub_.publish(ucf);
+    updateFlag = false;
 
-    // threshold for canny
-    int thresh = 30;
+    // ThresholdedImg = Imgcopy;
 
-    // Gaussian filter to smooth image
-    GaussianBlur(ThresholdedImg, ThresholdedImg, Size(3, 3), 0.1, 0, BORDER_DEFAULT);
-    blur(ThresholdedImg, ThresholdedImg, Size(3, 3));
+    // // threshold for canny
+    // int thresh = 30;
 
-    // OPEN and CLOSE operation to fill the narrow gap
-    // Mat element = getStructuringElement(MORPH_RECT, Size(5, 5));
-    // morphologyEx(ThresholdedImg, ThresholdedImg, MORPH_OPEN, element);
-    // morphologyEx(ThresholdedImg, ThresholdedImg, MORPH_CLOSE, element);
+    // // Gaussian filter to smooth image
+    // GaussianBlur(ThresholdedImg, ThresholdedImg, Size(3, 3), 0.1, 0, BORDER_DEFAULT);
+    // blur(ThresholdedImg, ThresholdedImg, Size(3, 3));
 
-    vector<vector<Point> > contours;
-    vector<vector<Point2d> > contours_map;
-    vector<Vec4i> hierarchy;
-    vector<int> contours_index;
-    priority_queue<pair<double, int>> pq;
+    // // OPEN and CLOSE operation to fill the narrow gap
+    // // Mat element = getStructuringElement(MORPH_RECT, Size(5, 5));
+    // // morphologyEx(ThresholdedImg, ThresholdedImg, MORPH_OPEN, element);
+    // // morphologyEx(ThresholdedImg, ThresholdedImg, MORPH_CLOSE, element);
 
-    // imshow("ori_img", ThresholdedImg);
-    //Apply thresholding to convert image from gray to binary
-    threshold(ThresholdedImg, ThresholdedImg, 140, 255, cv::THRESH_BINARY);
-    // imshow("Binary Image", ThresholdedImg);
+    // vector<vector<Point> > contours;
+    // vector<vector<Point2d> > contours_map;
+    // vector<Vec4i> hierarchy;
+    // vector<int> contours_index;
+    // priority_queue<pair<double, int>> pq;
 
-    // canny edge detection
-    Canny(ThresholdedImg, ThresholdedImg, thresh, thresh * 3, 3);
-    // imshow("Canny Image", ThresholdedImg);
+    // // imshow("ori_img", ThresholdedImg);
+    // //Apply thresholding to convert image from gray to binary
+    // threshold(ThresholdedImg, ThresholdedImg, 140, 255, cv::THRESH_BINARY);
+    // // imshow("Binary Image", ThresholdedImg);
 
-    findContours(ThresholdedImg, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    // // canny edge detection
+    // Canny(ThresholdedImg, ThresholdedImg, thresh, thresh * 3, 3);
+    // // imshow("Canny Image", ThresholdedImg);
 
-    if (contours.size() == 0)
-    {
-        cout << "target object missing" << endl;
-    }
-    else
-    {
-        Mat area(1, contours.size(), CV_32FC1);
+    // findContours(ThresholdedImg, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
-        cout << "contours number: " << contours.size() << endl;
+    // if (contours.size() == 0)
+    // {
+    //     cout << "target object missing" << endl;
+    // }
+    // else
+    // {
+    //     Mat area(1, contours.size(), CV_32FC1);
 
-        for (int i = 0; i < (int)contours.size(); i++)
-        {   
-            area.at<float>(i) = contourArea(contours[i]);
-            double contours_area = area.at<float>(i);
-            if (contours_area < min_contours_area) {
-                continue;
-            }
-            pq.push(make_pair(contourArea(contours[i]), i)); 
-        }
-        contours_index.clear();
-        while (!pq.empty()) {
-            int index = pq.top().second;
-            contours_index.push_back(index);
-            pq.pop();
-        }
-        for (int i=0; i<contours_index.size(); i++) {
+    //     cout << "contours number: " << contours.size() << endl;
 
-            vector<Point2d> contours_p;
-            Rect obstacle = boundingRect(Mat(contours[contours_index[i]]));
-            // cup_size = cup.area();
+    //     for (int i = 0; i < (int)contours.size(); i++)
+    //     {   
+    //         area.at<float>(i) = contourArea(contours[i]);
+    //         double contours_area = area.at<float>(i);
+    //         if (contours_area < min_contours_area) {
+    //             continue;
+    //         }
+    //         pq.push(make_pair(contourArea(contours[i]), i)); 
+    //     }
+    //     contours_index.clear();
+    //     while (!pq.empty()) {
+    //         int index = pq.top().second;
+    //         contours_index.push_back(index);
+    //         pq.pop();
+    //     }
+    //     for (int i=0; i<contours_index.size(); i++) {
+
+    //         vector<Point2d> contours_p;
+    //         Rect obstacle = boundingRect(Mat(contours[contours_index[i]]));
+    //         // cup_size = cup.area();
             
-            rectangle(ThresholdedImg, obstacle, Scalar(255), 1);
+    //         rectangle(ThresholdedImg, obstacle, Scalar(255), 1);
 
-            cv::Point2f center;
-            center.x = obstacle.tl().x + (obstacle.br().x - obstacle.tl().x)/2;
-            center.y = obstacle.tl().y + (obstacle.br().y - obstacle.tl().y)/2;
-            double ob_height = obstacle.height;
-            double ob_width = obstacle.width;
-            cout << "---------------------------" << endl;
-            cout << "obstacle index: " << contours_index[i] << endl;
-            cout << "obstacle height: " << ob_height << endl;
-            cout << "obstacle width: " << ob_width << endl;
-            cout << "obstacle center: (" << center.x << ", " << center.y << ")." << endl;
-            cout << "obstacle pixel vector: " << endl;
-            image2map(contours[contours_index[i]], contours_p);
-            contours_map.push_back(contours_p);
-            cout << "obstacle point in image: ";
-            for (auto cont : contours[i]) {
-                cout << "[" << cont.x << "," << cont.y <<"]" << " ";
-            }
-            cout << "\n";
-            cout << "obstacle point in map: ";
-            for (auto cont : contours_p) {
-                cout << "[" << cont.x << "," << cont.y <<"]" << " ";
-            }
-            cout << "\n";
-            double obs_area = area.at<float>(contours_index[i]) * m_image_height / image_height * m_image_width / image_width;
-            cout << "obstacle area value in map:" << obs_area << endl;
-        }
+    //         cv::Point2f center;
+    //         center.x = obstacle.tl().x + (obstacle.br().x - obstacle.tl().x)/2;
+    //         center.y = obstacle.tl().y + (obstacle.br().y - obstacle.tl().y)/2;
+    //         double ob_height = obstacle.height;
+    //         double ob_width = obstacle.width;
+    //         cout << "---------------------------" << endl;
+    //         cout << "obstacle index: " << contours_index[i] << endl;
+    //         cout << "obstacle height: " << ob_height << endl;
+    //         cout << "obstacle width: " << ob_width << endl;
+    //         cout << "obstacle center: (" << center.x << ", " << center.y << ")." << endl;
+    //         cout << "obstacle pixel vector: " << endl;
+    //         image2map(contours[contours_index[i]], contours_p);
+    //         contours_map.push_back(contours_p);
+    //         cout << "obstacle point in image: ";
+    //         for (auto cont : contours[i]) {
+    //             cout << "[" << cont.x << "," << cont.y <<"]" << " ";
+    //         }
+    //         cout << "\n";
+    //         cout << "obstacle point in map: ";
+    //         for (auto cont : contours_p) {
+    //             cout << "[" << cont.x << "," << cont.y <<"]" << " ";
+    //         }
+    //         cout << "\n";
+    //         double obs_area = area.at<float>(contours_index[i]) * m_image_height / image_height * m_image_width / image_width;
+    //         cout << "obstacle area value in map:" << obs_area << endl;
+    //     }
 
-        // vector<Moments> mu(contours.size());
-        // mu[max] = moments(contours[max], false);
+    //     // vector<Moments> mu(contours.size());
+    //     // mu[max] = moments(contours[max], false);
 
-        // vector<Point2f> mc(contours.size());
-        // mc[max] = Point2d(mu[max].m10 / mu[max].m00, mu[max].m01 / mu[max].m00);
+    //     // vector<Point2f> mc(contours.size());
+    //     // mc[max] = Point2d(mu[max].m10 / mu[max].m00, mu[max].m01 / mu[max].m00);
 
-        // imshow("result image", imgcolor);
-        // cout << "x= " << (int)mc[max].x << "****" << "y= " << (int)mc[max].y << endl;
-        // imshow("Thresholded Image", ThresholdedImg);
-        // cv::waitKey(3); 
-    }
+    //     // imshow("result image", imgcolor);
+    //     // cout << "x= " << (int)mc[max].x << "****" << "y= " << (int)mc[max].y << endl;
+    //     // imshow("Thresholded Image", ThresholdedImg);
+    //     // cv::waitKey(3); 
+    // }
 }
 
 void LocalMapUpdate::image2map(const vector<Point>& p, vector<Point2d>& p_map) {

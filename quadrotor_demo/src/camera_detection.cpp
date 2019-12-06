@@ -256,17 +256,6 @@ class ImageConverter
                 double obs_area = area.at<float>(contours_index[i]) * m_image_height / image_height * m_image_width / image_width;
                 cout << "obstacle area value in map:" << obs_area << endl;
             }
-
-            // vector<Moments> mu(contours.size());
-            // mu[max] = moments(contours[max], false);
-
-            // vector<Point2f> mc(contours.size());
-            // mc[max] = Point2d(mu[max].m10 / mu[max].m00, mu[max].m01 / mu[max].m00);
-
-            // imshow("result image", imgcolor);
-            // cout << "x= " << (int)mc[max].x << "****" << "y= " << (int)mc[max].y << endl;
-            // imshow("Thresholded Image", ThresholdedImg);
-            // cv::waitKey(3); 
         }
     }
 

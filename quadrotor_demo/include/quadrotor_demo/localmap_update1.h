@@ -42,6 +42,7 @@ private:
     Mat colorImg, ThresholdedImg;
     string topic;
     bool updateFlag;
+    bool updateCompleteFlag;
 public:
     LocalMapUpdate(ros::NodeHandle* nodehandle1, ros::NodeHandle* nodehandle2, string str);
     ~LocalMapUpdate();
