@@ -32,12 +32,16 @@ private:
     // bool ready_flag_2 = false;
     // bool ready_flag_3 = false;
     bool ready_flag = false;
+    bool update1Complete = false;
+    bool update2Complete = false;
+    bool update3Complete = false;
 
     vector<bool> pidFlag;
 
     vector<bool> switchFlag01;
     vector<bool> switchFlag12;
     vector<bool> switchFlag23;
+    vector<bool> updateMapFlag;
 
     bool switchFlag0 = false;
     bool switchFlag1 = false;
@@ -88,10 +92,17 @@ private:
     ros::Subscriber event1_sub_;
     ros::Subscriber event2_sub_;
     ros::Subscriber event3_sub_;
+    ros::Subscriber update1_complete_sub_;
+    ros::Subscriber update2_complete_sub_;
+    ros::Subscriber update3_complete_sub_;
+
     ros::Publisher control1input_pub_;
     ros::Publisher control2input_pub_;
     ros::Publisher control3input_pub_;
     ros::Publisher ready_flag_pub_;
+    ros::Publisher update1Map_flag_pub_;
+    ros::Publisher update2Map_flag_pub_;
+    ros::Publisher update3Map_flag_pub_;
 
 
 public:
@@ -106,6 +117,7 @@ public:
     void setpidgains(double p=0.5, double i=0.00, double d=0.0);
     void setvelocity(double x=0.6);
     void setdronenum(int x=3);
+    void updateMap();
     // void setpath();
     
     // void goalCallback(const geometry_msgs::PoseArray& goal);
@@ -116,6 +128,9 @@ public:
     void event2Callback(const geometry_msgs::PoseStamped& odom2);
     void event3Callback(const geometry_msgs::PoseStamped& odom3); 
     void pathCallback(const quadrotor_demo::final_path& path);
+    void update1CompleteCallback(const std_msgs::Bool& flag1);
+    void update2CompleteCallback(const std_msgs::Bool& flag2);
+    void update3CompleteCallback(const std_msgs::Bool& flag3);
 
 };
 

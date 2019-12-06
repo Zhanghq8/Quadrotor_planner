@@ -23,6 +23,7 @@ void Controller_tracking::initVec() {
     switchFlag12 = vector<bool> (3, false);
     switchFlag23 = vector<bool> (3, false);
     pidFlag = vector<bool> (3, false);
+    updateMapFlag = vector<bool> (3, false);
     // path = vector<vector<vector<Vec2i>>> (drone_num);
 }
 
@@ -58,6 +59,9 @@ void Controller_tracking::initSub() {
     event1_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &Controller_tracking::event1Callback,this);
     event2_sub_ = nh_.subscribe("/drone2/ground_truth_to_tf/pose", 1, &Controller_tracking::event2Callback,this);
     event3_sub_ = nh_.subscribe("/drone3/ground_truth_to_tf/pose", 1, &Controller_tracking::event3Callback,this);
+    update1_complete_sub_ = nh_.subscribe("/update1_complete", 1, &Controller_tracking::update1CompleteCallback,this);
+    update2_complete_sub_ = nh_.subscribe("/update2_complete", 1, &Controller_tracking::update2CompleteCallback,this);
+    update3_complete_sub_ = nh_.subscribe("/update3_complete", 1, &Controller_tracking::update3CompleteCallback,this);
     current1pos_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &Controller_tracking::currentpos1Callback,this);
     current2pos_sub_ = nh_.subscribe("/drone2/ground_truth_to_tf/pose", 1, &Controller_tracking::currentpos2Callback,this);
     current3pos_sub_ = nh_.subscribe("/drone3/ground_truth_to_tf/pose", 1, &Controller_tracking::currentpos3Callback,this);
@@ -67,6 +71,9 @@ void Controller_tracking::initSub() {
 //member helper function to set up publishers;
 void Controller_tracking::initPub() {
     // ROS_INFO("Initializing Publishers");
+    update1Map_flag_pub_ = nh_.advertise<std_msgs::Bool>("/updatemap1", 1, true);
+    update2Map_flag_pub_ = nh_.advertise<std_msgs::Bool>("/updatemap2", 1, true);
+    update3Map_flag_pub_ = nh_.advertise<std_msgs::Bool>("/updatemap3", 1, true);
     control1input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone1/cmd_vel", 1, true); 
     control2input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone2/cmd_vel", 1, true);
     control3input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone3/cmd_vel", 1, true);
@@ -103,6 +110,7 @@ void Controller_tracking::pathCallback(const quadrotor_demo::final_path& path) {
     }
     std::cout << sensorPath[0].size() << " " << sensorPath[1].size() << sensorPath[2].size() << std::endl; 
     start_flag = true;
+    updateMapFlag = vector<bool> (3, false);
     //============================== DEBUG ========================//
     //=============================================================//
     // for (int i=0; i<sensorPath.size(); i++) {
@@ -249,6 +257,7 @@ void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1
                 if ((abs(posvector[i][0] - goalposvector[i][0])<d*0.1) && (abs(posvector[i][1] - goalposvector[i][1])<d*0.1) 
                     && (posvector[i][0] * goalposvector[i][0] > 0.01)) {
                     if (waypoint_cnt[i] == sensorPath[i][0].size()) {
+                        updateMapFlag[i] = true;
                         control1input.linear.x = 0.0;
                         control1input.linear.y = 0.0;
                         control1input.linear.z = 0.0;
@@ -271,18 +280,20 @@ void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1
             }
         } else {
             switchFlag01[i] = true;
+            updateMapFlag[i] = false;
         }
         
     }
     switchFlag0 = switchFlag01[0] && switchFlag01[1] && switchFlag01[2];
     if (switchFlag0) {
         waypoint_cnt = vector<int> (drone_num, 1);
+        updateMap();
     }
 }
 
 void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2) {
     std::cout << "event2: " << switchFlag0 << " " << switchFlag1 << " " << switchFlag2 << " " << start_flag << std::endl;
-    if (switchFlag0 && !switchFlag1 && !switchFlag2 && start_flag) {
+    if (switchFlag0 && !switchFlag1 && !switchFlag2 && start_flag && (update1Complete && update2Complete && update3Complete)) {
         for (int i=0; i<drone_num; i++) {
 
         // check if the there is task for dronei
@@ -319,6 +330,7 @@ void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2
         switchFlag1 = switchFlag12[0] && switchFlag12[1] && switchFlag12[2];
         if (switchFlag1) {
             waypoint_cnt = vector<int> (drone_num, 1);
+            updateMap();
         }
     }
     
@@ -361,9 +373,36 @@ void Controller_tracking::event3Callback(const geometry_msgs::PoseStamped& odom3
             switchFlag2 = switchFlag23[0] && switchFlag23[1] && switchFlag23[2];
             if (switchFlag2) {
                 waypoint_cnt = vector<int> (drone_num, 1);
+                updateMap();
             }
         }
     }
+}
+
+void Controller_tracking::updateMap() {
+    for (int i=0; i<updateMapFlag.size(); i++) {
+        std_msgs::Bool updateMap;
+        updateMap.data = updateMapFlag[i];
+        if (i == 0) {
+            update1Map_flag_pub_.publish(updateMap);
+        } else if (i == 1) {
+            update2Map_flag_pub_.publish(updateMap);
+        } else {
+            update3Map_flag_pub_.publish(updateMap);
+        }
+    }
+}
+
+void Controller_tracking::update1CompleteCallback(const std_msgs::Bool& flag1) {
+    update1Complete = flag1.data;
+}
+
+void Controller_tracking::update2CompleteCallback(const std_msgs::Bool& flag2) {
+    update2Complete = flag2.data;
+}
+
+void Controller_tracking::update3CompleteCallback(const std_msgs::Bool& flag3) {
+    update3Complete = flag3.data;
 };
 
 
