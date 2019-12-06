@@ -19,11 +19,11 @@ IpasDemo::~IpasDemo() {
 }
 
 void IpasDemo::initMap() {
-    std::shared_ptr<SquareGrid> uncertain_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1,vehicle_team_,tasks_);
-	std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph = GridGraph::BuildGraphFromSquareGrid(uncertain_grid, true);
+    uncertain_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1,vehicle_team_,tasks_);
+	uncertain_graph = GridGraph::BuildGraphFromSquareGrid(uncertain_grid, true);
 
     // Build true map
-    std::shared_ptr<SquareGrid> true_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1);
+    true_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1);
     for(auto rg: range_idx_){
         for(int ii = rg[0]; ii<rg[1];ii++){
             true_grid->SetObstacleRegionLabel(ii,1);
@@ -37,7 +37,7 @@ void IpasDemo::initMap() {
     true_grid->SetObstacleRegionLabel(20,1);
     true_grid->SetObstacleRegionLabel(21,1);
     true_grid->SetObstacleRegionLabel(22,1);
-    std::shared_ptr<Graph_t<SquareCell *>> true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
+    true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
     //===============================================================================================//
     //============================================= CBBA ============================================//
     //===============================================================================================//   

@@ -72,6 +72,11 @@ private:
     bool updatemap_flag;
     std::unordered_set<int64_t> hotspots;
 
+    std::shared_ptr<SquareGrid> uncertain_grid;
+    std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph;
+    std::shared_ptr<SquareGrid> true_grid;
+    std::shared_ptr<Graph_t<SquareCell *>> true_graph;
+
     // vector<vector<double>> interestedpoints;
     // vector<vector<double>> posvector;
     // vector<int> task_index;
