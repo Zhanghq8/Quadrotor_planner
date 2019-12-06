@@ -77,6 +77,8 @@ add_message_files(
   path.msg
   pathes.msg
   final_path.msg
+  localmap.msg
+  obstacle_info.msg
 )
 
 ## Generate services in the 'srv' folder

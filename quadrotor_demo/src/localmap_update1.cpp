@@ -4,6 +4,7 @@ LocalMapUpdate::LocalMapUpdate(ros::NodeHandle* nodehandle1, ros::NodeHandle* no
 			nh_(*nodehandle1), it_(*nodehandle2), topic(str) {
     updateFlag = false;
     updateCompleteFlag = false;
+    posvector = vector<double> (7, 0);
     initSub();
     initPub();
 }
@@ -16,11 +17,13 @@ void LocalMapUpdate::initSub() {
     // ROS_INFO("Initializing Subscribers");  
     image_sub_ = it_.subscribe(topic, 1, &LocalMapUpdate::imageCallback, this);
     update1Map_flag_sub_ = nh_.subscribe("/updatemap1", 1, &LocalMapUpdate::update1mapflagCallback,this);
+    current1pos_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &LocalMapUpdate::currentpos1Callback,this);
 }
 
 void LocalMapUpdate::initPub() {
     // ROS_INFO("Initializing Publishers");
     update_complete_pub_ = nh_.advertise<std_msgs::Bool>("/update1_complete", 1, true); 
+    localmap1_pub_ = nh_.advertise<quadrotor_demo::localmap>("/localmap1", 1, true); 
 }
 
 void LocalMapUpdate::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
@@ -58,7 +61,7 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     // grid number vector
     vector<vector<bool>> occupancy(3, vector<bool> (3, false));
     vector<int> cover(9, 0);  
-    vector<pair<int, int>> result;
+    map<int, bool> obstacle_info;
 
     // 400mm offset->18 pixels 
     // center: 320, 480
@@ -137,14 +140,29 @@ void LocalMapUpdate::filter(const Mat& color_img) {
 
     for (int i=0; i<cover.size(); i++) {
         if (cover[i] >= 265) {
-            result.push_back(coordinates[i]);
+            obstacle_info.insert({i, true});
+        } else {
+            obstacle_info.insert({i, false});
         }
     }
-    cout << "The coordidates for obstacle: ";
-    for (auto n : result) {
-        cout << n.first << " " << n.second << "\t";
+    // cout << "The coordidates for obstacle: ";
+    // for (auto n : result) {
+    //     cout << n.first << " " << n.second << "\t";
+    // }
+    // cout << endl;
+
+    quadrotor_demo::localmap localmap_msg;
+    localmap_msg.xpos = posvector[0];
+    localmap_msg.ypos = posvector[1];
+    // quadrotor_demo::obstacle_info obstacle_info_msg;
+    for (auto itr = obstacle_info.begin(); itr != obstacle_info.end(); itr++) {
+        quadrotor_demo::obstacle_info obstacle_msg;
+        obstacle_msg.id = itr->first;
+        obstacle_msg.isobstacle = itr->second;
+        localmap_msg.obstacle_data.push_back(obstacle_msg);
     }
-    cout << endl;
+    // localmap_msg.obstacle_data = obstacle_info_msg;
+    localmap1_pub_.publish(localmap_msg);
 
     updateCompleteFlag = true;
     std_msgs::Bool ucf;
@@ -262,6 +280,7 @@ void LocalMapUpdate::image2map(const vector<Point>& p, vector<Point2d>& p_map) {
         p_map.push_back(xy);
     }
 }
+
 Point2d LocalMapUpdate::pixel2coordinate(Point p) {
     //image x -> map -y 
     //image y -> map -x
@@ -280,6 +299,16 @@ Point2d LocalMapUpdate::pixel2coordinate(Point p) {
     xy.x = abs(y_p_length) * x_sign * x_resolution + 400; // add camera offset
     xy.y = abs(x_p_length) * y_sign * y_resolution;
     return xy;
+}
+
+void LocalMapUpdate::currentpos1Callback(const geometry_msgs::PoseStamped& odom1) {   
+    posvector[0] = odom1.pose.position.x;
+    posvector[1] = odom1.pose.position.y;
+    posvector[2] = odom1.pose.position.z;
+    posvector[3] = odom1.pose.orientation.x; 
+    posvector[4] = odom1.pose.orientation.y;
+    posvector[5] = odom1.pose.orientation.z;
+    posvector[6] = odom1.pose.orientation.w;
 }
 
 int main(int argc, char** argv)

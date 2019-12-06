@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include <string>
 #include <queue>
 
@@ -17,9 +18,15 @@
 
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
+#include "quadrotor_demo/localmap.h"
+#include "quadrotor_demo/obstacle_info.h"
+#include "quadrotor_demo/obstacle.h"
+
 
 using namespace cv;
 using namespace std;
@@ -37,12 +44,16 @@ private:
     image_transport::ImageTransport it_;
     image_transport::Subscriber image_sub_;
     ros::Subscriber update1Map_flag_sub_;
+    ros::Subscriber current1pos_sub_;
+
     ros::Publisher update_complete_pub_;
+    ros::Publisher localmap1_pub_;
 
     Mat colorImg, ThresholdedImg;
     string topic;
     bool updateFlag;
     bool updateCompleteFlag;
+    vector<double> posvector;
 public:
     LocalMapUpdate(ros::NodeHandle* nodehandle1, ros::NodeHandle* nodehandle2, string str);
     ~LocalMapUpdate();
@@ -55,6 +66,7 @@ public:
 	Point2d pixel2coordinate(Point p);
 
 	void update1mapflagCallback(const std_msgs::Bool& flag);
+    void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
 };
 
 
