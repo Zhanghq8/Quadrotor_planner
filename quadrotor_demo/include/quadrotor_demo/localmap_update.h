@@ -26,7 +26,6 @@
 #include <sensor_msgs/Image.h>
 #include "quadrotor_demo/localmap.h"
 #include "quadrotor_demo/obstacle_info.h"
-#include "quadrotor_demo/obstacle.h"
 
 
 using namespace cv;
