@@ -65,7 +65,6 @@ private:
 
     int64_t num_row_;
     int64_t num_col_;
-    std::vector<std::vector<int64_t>> range_idx_;
 
     int64_t ipas_tt;
     bool updatemap_flag;
@@ -85,7 +84,7 @@ public:
 	// IpasDemo(ros::NodeHandle* nodehandle);
 	IpasDemo(ros::NodeHandle* nodehandle, std::vector<Task>& tasks_data, std::vector<AutoVehicle>& agent, 
 			Eigen::MatrixXi& comm_, int64_t num_vehicle, int64_t num_tasks, int64_t num_sensors, int64_t num_row, 
-			int64_t num_col, std::vector<std::vector<int64_t>> range_idx);
+			int64_t num_col);
 	~IpasDemo();
 	void init();
 	void initMap();

@@ -2,10 +2,9 @@
 
 IpasDemo::IpasDemo(ros::NodeHandle* nodehandle, std::vector<Task>& tasks_data, std::vector<AutoVehicle>& agent, 
 		Eigen::MatrixXi& comm, int64_t num_vehicle, int64_t num_tasks, int64_t num_sensors, int64_t num_row, 
-			int64_t num_col, std::vector<std::vector<int64_t>> range_idx) 
+			int64_t num_col) 
 			: nh_(*nodehandle), tasks_data_(tasks_data), agents_(agent), comm_(comm), num_vehicle_(num_vehicle), 
-			num_tasks_(num_tasks), num_sensors_(num_sensors), num_row_(num_row), num_col_(num_col),
-			range_idx_(range_idx) { 
+			num_tasks_(num_tasks), num_sensors_(num_sensors), num_row_(num_row), num_col_(num_col) { 
 	// constructor
  	// ROS_INFO("In class constructor of IpasDemo");
 	assert(num_sensors_ == 3 && "The number of sensors in this demo must be strictly equal to 3!");
@@ -24,19 +23,19 @@ void IpasDemo::initMap() {
 
     // Build true map
     true_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1);
-    for(auto rg: range_idx_){
-        for(int ii = rg[0]; ii<rg[1];ii++){
-            true_grid->SetObstacleRegionLabel(ii,1);
-        }
-    }
-    true_grid->SetObstacleRegionLabel(4,1);
-    true_grid->SetObstacleRegionLabel(5,1);
-    true_grid->SetObstacleRegionLabel(6,1);
-    true_grid->SetObstacleRegionLabel(9,1);
-    true_grid->SetObstacleRegionLabel(14,1);
-    true_grid->SetObstacleRegionLabel(20,1);
-    true_grid->SetObstacleRegionLabel(21,1);
-    true_grid->SetObstacleRegionLabel(22,1);
+    // for(auto rg: range_idx_){
+    //     for(int ii = rg[0]; ii<rg[1];ii++){
+    //         true_grid->SetObstacleRegionLabel(ii,1);
+    //     }
+    // }
+    // true_grid->SetObstacleRegionLabel(4,1);
+    // true_grid->SetObstacleRegionLabel(5,1);
+    // true_grid->SetObstacleRegionLabel(6,1);
+    // true_grid->SetObstacleRegionLabel(9,1);
+    // true_grid->SetObstacleRegionLabel(14,1);
+    // true_grid->SetObstacleRegionLabel(20,1);
+    // true_grid->SetObstacleRegionLabel(21,1);
+    // true_grid->SetObstacleRegionLabel(22,1);
     true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
     //===============================================================================================//
     //============================================= CBBA ============================================//
@@ -252,11 +251,8 @@ int main(int argc, char** argv) {
 
     int64_t num_row = 20;
     int64_t num_col = 20;
-    std::vector<std::vector<int64_t>> range_idx = {{15,20},{36,40},{56,60},{78,80},{40,48},{60,67},{80,86},
-                                            		{100,105},{120,124},{140,143},{151,160},{171,180},{191,200},
-                                            		{211,214},{217,220},{231,234},{237,240},{220,226},{240,246},
-                                            		{260,266},{327,331},{346,352},{366,372},{387,391}};
-    IpasDemo ipasdemo(&nh, tasks_data, agents, comm, num_vehicle, num_tasks, num_sensors, num_row, num_col, range_idx);
+
+    IpasDemo ipasdemo(&nh, tasks_data, agents, comm, num_vehicle, num_tasks, num_sensors, num_row, num_col);
     	
     ROS_INFO("Initializing ipas demo...");
     // ros::Rate loop_rate(0.5); // 5Hz
