@@ -1,5 +1,5 @@
-#ifndef LOCALMAP_UPDATE1_H_
-#define LOCALMAP_UPDATE1_H_
+#ifndef LOCALMAP_UPDATE_H_
+#define LOCALMAP_UPDATE_H_
 
 #include <iostream>
 #include <sstream>
@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <queue>
+#include <assert.h> 
 
 
 #include <cv_bridge/cv_bridge.h>
@@ -43,21 +44,26 @@ private:
     ros::NodeHandle nh_;
     image_transport::ImageTransport it_;
     image_transport::Subscriber image_sub_;
-    ros::Subscriber update1Map_flag_sub_;
-    ros::Subscriber current1pos_sub_;
+    ros::Subscriber updateMap_flag_sub_;
+    ros::Subscriber currentpos_sub_;
 
     ros::Publisher update_complete_pub_;
-    ros::Publisher localmap1_pub_;
+    ros::Publisher localmap_pub_;
 
     Mat colorImg, ThresholdedImg;
     string topic;
     bool updateFlag;
     bool updateCompleteFlag;
     vector<double> posvector;
+    string updateMapTopic;
+    string posTopic;
+    string updateCompleteTopic;
+    string localmapTopic;
 public:
     LocalMapUpdate(ros::NodeHandle* nodehandle1, ros::NodeHandle* nodehandle2, string str);
     ~LocalMapUpdate();
 
+    void init();
     void initSub(); 
     void initPub();
     void imageCallback(const sensor_msgs::ImageConstPtr& msg);
@@ -65,9 +71,9 @@ public:
    	void image2map(const vector<Point>& p, vector<Point2d>& p_map);
 	Point2d pixel2coordinate(Point p);
 
-	void update1mapflagCallback(const std_msgs::Bool& flag);
-    void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
+	void updatemapflagCallback(const std_msgs::Bool& flag);
+    void currentposCallback(const geometry_msgs::PoseStamped& odom1);
 };
 
 
-#endif /* LOCALMAP_UPDATE1_H_ */
+#endif /* LOCALMAP_UPDATE_H_ */
