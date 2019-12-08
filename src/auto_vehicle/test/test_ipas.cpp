@@ -123,7 +123,15 @@ int main(int argc, char** argv )
         TasksSet sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
         CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
 
-        std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,TaskType::MEASURE);
+        std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,sensing_tasks_,TaskType::MEASURE);
+        
+        // Update initial position for sensors
+        for(auto agent: vehicle_team_->auto_team_){
+            if (agent->vehicle_type_ == TaskType::MEASURE && !agent->task_path_.empty()){
+                Task tsk = sensing_tasks_.GetTaskFromID(agent->task_path_.back());
+                agent->pos_ = tsk.pos_.front();
+            }
+        }
 
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
