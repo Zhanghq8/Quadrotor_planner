@@ -10,6 +10,7 @@
 #include <bitset>
 #include <assert.h> 
 #include <unordered_set>
+#include <unordered_map>
 
 // self-defined library
 #include "graph/graph.hpp"
@@ -33,6 +34,8 @@
 #include "quadrotor_demo/path.h"
 #include "quadrotor_demo/pathes.h"
 #include "quadrotor_demo/final_path.h"
+#include "quadrotor_demo/localmap.h"
+#include "quadrotor_demo/obstacle_info.h"
 
 using namespace librav;
 
@@ -49,6 +52,11 @@ private:
     ros::Subscriber currentpos3_sub_;
     // make sure drones are ready to get new interested point
     ros::Subscriber updatemapflag_sub_;
+    ros::Subscriber updategraphflag_sub_;
+
+    ros::Subscriber localmap1_sub_;
+    ros::Subscriber localmap2_sub_;
+    ros::Subscriber localmap3_sub_;
 
     // ipas param
     int64_t num_vehicle_;
@@ -61,6 +69,7 @@ private:
     // agent type
     std::vector<AutoVehicle> agents_;
     TasksSet tasks_;
+    TasksSet sensing_tasks_;
     std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team_;
 
     int64_t num_row_;
@@ -68,17 +77,14 @@ private:
 
     int64_t ipas_tt;
     bool updatemap_flag;
+    bool updategraph_flag;
     std::unordered_set<int64_t> hotspots;
+    std::unordered_map<int64_t, int64_t> index2Id;
 
     std::shared_ptr<SquareGrid> uncertain_grid;
     std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph;
     std::shared_ptr<SquareGrid> true_grid;
     std::shared_ptr<Graph_t<SquareCell *>> true_graph;
-
-    // vector<vector<double>> interestedpoints;
-    // vector<vector<double>> posvector;
-    // vector<int> task_index;
-
 
 public:
 	// IpasDemo(ros::NodeHandle* nodehandle);
@@ -92,11 +98,16 @@ public:
     void initPub();
     void mobilePath();
     void sensorPath();
+    void updateLocalmap(const quadrotor_demo::localmap& localmap);
     void pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes);
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
     void currentpos2Callback(const geometry_msgs::PoseStamped& odom2);
     void currentpos3Callback(const geometry_msgs::PoseStamped& odom3);
+    void localmap1Callback(const quadrotor_demo::localmap& localmap1);
+    void localmap2Callback(const quadrotor_demo::localmap& localmap2);
+    void localmap3Callback(const quadrotor_demo::localmap& localmap3);
     void updatemapflagCallback(const std_msgs::Bool& flag);
+    void updategraphflagCallback(const std_msgs::Bool& graphFlag);
 };
 
 #endif /* IPAS_DEMO_H */

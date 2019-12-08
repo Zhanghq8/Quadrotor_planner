@@ -167,6 +167,7 @@ void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
     }
+    std::cout << "Localmap Updated!" << std::endl;
 }
 
 void IpasDemo::mobilePath() {
