@@ -60,23 +60,23 @@ int main() {
 
     // Build true map
     std::shared_ptr<SquareGrid> true_grid = GridGraph::CreateSquareGrid(num_row,num_col,1);
-    std::vector<std::vector<int64_t>> range_idx_ = {{15,20},{36,40},{56,60},{78,80},{40,48},{60,67},{80,86},
-                                                {100,105},{120,124},{140,143},{151,160},{171,180},{191,200},
-                                                {211,214},{217,220},{231,234},{237,240},{220,226},{240,246},
-                                                {260,266},{327,331},{346,352},{366,372},{387,391}};
-    for(auto rg: range_idx_){
-        for(int ii = rg[0]; ii<rg[1];ii++){
-            true_grid->SetObstacleRegionLabel(ii,1);
-        }
-    }
-    true_grid->SetObstacleRegionLabel(4,1);
-    true_grid->SetObstacleRegionLabel(5,1);
-    true_grid->SetObstacleRegionLabel(6,1);
-    true_grid->SetObstacleRegionLabel(9,1);
-    true_grid->SetObstacleRegionLabel(14,1);
-    true_grid->SetObstacleRegionLabel(20,1);
-    true_grid->SetObstacleRegionLabel(21,1);
-    true_grid->SetObstacleRegionLabel(22,1);
+    // std::vector<std::vector<int64_t>> range_idx_ = {{15,20},{36,40},{56,60},{78,80},{40,48},{60,67},{80,86},
+    //                                             {100,105},{120,124},{140,143},{151,160},{171,180},{191,200},
+    //                                             {211,214},{217,220},{231,234},{237,240},{220,226},{240,246},
+    //                                             {260,266},{327,331},{346,352},{366,372},{387,391}};
+    // for(auto rg: range_idx_){
+    //     for(int ii = rg[0]; ii<rg[1];ii++){
+    //         true_grid->SetObstacleRegionLabel(ii,1);
+    //     }
+    // }
+    true_grid->SetObstacleRegionLabel(42,1);
+    // true_grid->SetObstacleRegionLabel(5,1);
+    // true_grid->SetObstacleRegionLabel(6,1);
+    // true_grid->SetObstacleRegionLabel(9,1);
+    // true_grid->SetObstacleRegionLabel(14,1);
+    // true_grid->SetObstacleRegionLabel(20,1);
+    // true_grid->SetObstacleRegionLabel(21,1);
+    // true_grid->SetObstacleRegionLabel(22,1);
     std::shared_ptr<Graph_t<SquareCell *>> true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
     //===============================================================================================//
     //============================================= CBBA ============================================//
