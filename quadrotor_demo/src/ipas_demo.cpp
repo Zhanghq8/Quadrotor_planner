@@ -90,6 +90,7 @@ void IpasDemo::initSub() {
 void IpasDemo::initPub() {
     // ROS_INFO("Initializing Publishers");
     task_pub_ = nh_.advertise<quadrotor_demo::final_path>("/sensor_path", 1, true); 
+    iteration_complete_pub_ = nh_.advertise<std_msgs::Bool>("/updatemap_flag", 1, true); 
     // marker_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization_markerarray", 10);
     // control1input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone1/cmd_vel", 1, true); 
     // control2input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone2/cmd_vel", 1, true);
@@ -168,8 +169,15 @@ void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
     	updateSensorPos();
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
+        std::cout << "Localmap Updated!" << std::endl;
+        std_msgs::Bool iterationComplete_flag;
+        iterationComplete_flag.data = true;
+        iteration_complete_pub_.publish(iterationComplete_flag);
+        std::cout << "Iteration " << ipas_tt << " finished!" << std::endl;
+        std::cout << "======================================" << std::endl;
+
     }
-    std::cout << "Localmap Updated!" << std::endl;
+    
 }
 
 void IpasDemo::updateSensorPos() {
@@ -183,6 +191,7 @@ void IpasDemo::updateSensorPos() {
 
 void IpasDemo::mobilePath() {
 	ipas_tt ++;
+	std::cout << "======================================" << std::endl;
 	std::cout << "Iteration: " << ipas_tt << std::endl;
     // Implement the CBBA to determine the task assignment
     CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
