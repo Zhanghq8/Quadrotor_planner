@@ -164,10 +164,21 @@ void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
     updategraph_flag = graphFlag_msg.data;
     if (updategraph_flag == true) {
     	true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
+    	// update sensor pose
+    	updateSensorPos();
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
     }
     std::cout << "Localmap Updated!" << std::endl;
+}
+
+void IpasDemo::updateSensorPos() {
+	for (auto agent : vehicle_team_->auto_team_) {
+		if (agent->vehicle_type_ == TaskType::MEASURE && !agent->task_path_.empty()) {
+			Task tsk = sensing_tasks_.GetTaskFromID(agent->task_path_.back());
+			agent->pos_ = tsk.pos_.front();
+		}
+	}
 }
 
 void IpasDemo::mobilePath() {

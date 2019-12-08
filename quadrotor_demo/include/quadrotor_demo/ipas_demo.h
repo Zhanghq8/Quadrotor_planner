@@ -98,6 +98,7 @@ public:
     void initPub();
     void mobilePath();
     void sensorPath();
+    void updateSensorPos(); 
     void updateLocalmap(const quadrotor_demo::localmap& localmap);
     void pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes);
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
