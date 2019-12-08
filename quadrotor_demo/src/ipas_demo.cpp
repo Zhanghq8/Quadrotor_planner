@@ -175,6 +175,7 @@ void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
         iteration_complete_pub_.publish(iterationComplete_flag);
         std::cout << "Iteration " << ipas_tt << " finished!" << std::endl;
         std::cout << "======================================" << std::endl;
+        std::cout << "======================================" << std::endl;
 
     }
     
@@ -191,6 +192,7 @@ void IpasDemo::updateSensorPos() {
 
 void IpasDemo::mobilePath() {
 	ipas_tt ++;
+	std::cout << "======================================" << std::endl;
 	std::cout << "======================================" << std::endl;
 	std::cout << "Iteration: " << ipas_tt << std::endl;
     // Implement the CBBA to determine the task assignment
@@ -252,6 +254,7 @@ void IpasDemo::sensorPath() {
 void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
 	quadrotor_demo::final_path finalpath_msg;
 	// int path_size = pathes.size();
+	bool endFlag = false;
     for(auto p: pathes){
     	if (p.first >= 3) {
     		quadrotor_demo::pathes pathes_msg;
@@ -271,10 +274,13 @@ void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
 	        		hotspots.erase(v->id_);
 	        		pathes_msg.pathes_data.push_back(path_msg);
 	        		path_msg.path.clear();
-	        		path_msg.path.push_back(pose_msg);
+	        		
+	        		if (v->id_ != p.second.back()->id_) {
+	        			path_msg.path.push_back(pose_msg);
+	        		}
 	        	}
 	        }
-	        pathes_msg.pathes_data.push_back(path_msg);
+        	pathes_msg.pathes_data.push_back(path_msg);
 	        finalpath_msg.final_path.push_back(pathes_msg);
     	}
     }
