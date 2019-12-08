@@ -62,7 +62,7 @@ void LocalMapUpdate::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
     // cout << "---------------------" << endl;
     // cout << "For rostopic: " << topic << endl;
     if (updateFlag) {
-        ros::Rate loop_rate(0.2);
+        ros::Rate loop_rate(10);
         loop_rate.sleep();
     	filter(colorImg);
     }
