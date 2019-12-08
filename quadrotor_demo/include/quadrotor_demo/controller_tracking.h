@@ -31,9 +31,10 @@ private:
     // bool ready_flag_2 = false;
     // bool ready_flag_3 = false;
     bool ready_flag = false;
-    bool update1Complete = false;
-    bool update2Complete = false;
-    bool update3Complete = false;
+    // bool update1Complete = false;
+    // bool update2Complete = false;
+    // bool update3Complete = false;
+    vector<bool> updateComplete;
 
     vector<bool> pidFlag;
 

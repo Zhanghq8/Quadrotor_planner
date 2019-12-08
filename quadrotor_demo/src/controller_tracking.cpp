@@ -24,6 +24,7 @@ void Controller_tracking::initVec() {
     switchFlag23 = vector<bool> (3, false);
     pidFlag = vector<bool> (3, false);
     updateMapFlag = vector<bool> (3, false);
+    updateComplete = vector<bool> (3, false);
     // path = vector<vector<vector<Vec2i>>> (drone_num);
 }
 
@@ -280,7 +281,7 @@ void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1
             }
         } else {
             switchFlag01[i] = true;
-            updateMapFlag[i] = false;
+            updateComplete[i] = true;
         }
         
     }
@@ -293,7 +294,7 @@ void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1
 
 void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2) {
     std::cout << "event2: " << switchFlag0 << " " << switchFlag1 << " " << switchFlag2 << " " << start_flag << std::endl;
-    if (switchFlag0 && !switchFlag1 && !switchFlag2 && start_flag && (update1Complete && update2Complete && update3Complete)) {
+    if (switchFlag0 && !switchFlag1 && !switchFlag2 && start_flag && (updateComplete[0] && updateComplete[1] && updateComplete[2])) {
         for (int i=0; i<drone_num; i++) {
 
         // check if the there is task for dronei
@@ -325,6 +326,7 @@ void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2
                 }
             } else {
                 switchFlag12[i] = true;
+                updateComplete[i] = true;
             }
         }
         switchFlag1 = switchFlag12[0] && switchFlag12[1] && switchFlag12[2];
@@ -394,15 +396,15 @@ void Controller_tracking::updateMap() {
 }
 
 void Controller_tracking::update1CompleteCallback(const std_msgs::Bool& flag1) {
-    update1Complete = flag1.data;
+    updateComplete[0] = flag1.data;
 }
 
 void Controller_tracking::update2CompleteCallback(const std_msgs::Bool& flag2) {
-    update2Complete = flag2.data;
+    updateComplete[1] = flag2.data;
 }
 
 void Controller_tracking::update3CompleteCallback(const std_msgs::Bool& flag3) {
-    update3Complete = flag3.data;
+    updateComplete[2] = flag3.data;
 };
 
 

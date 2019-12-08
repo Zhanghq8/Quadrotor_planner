@@ -64,7 +64,11 @@ void IpasDemo::initMap() {
 
 void IpasDemo::init() {
 	updatemap_flag = true;
+	updategraph_flag = false;
 	ipas_tt = 0;
+	index2Id = {{0,-num_col_-1}, {1,-num_col_}, {2, -num_col_+1},
+				{3,-1}, {4,0}, {5,1},
+				{6,num_col_-1}, {7,num_col_}, {8,num_col_+1}};
 	tasks_ = TasksSet(tasks_data_);
 	vehicle_team_ = IPASMeasurement::ConstructAutoTeam(agents_);
 	initMap();
@@ -76,8 +80,11 @@ void IpasDemo::initSub() {
     currentpos1_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &IpasDemo::currentpos1Callback,this);
     currentpos2_sub_ = nh_.subscribe("/drone2/ground_truth_to_tf/pose", 1, &IpasDemo::currentpos2Callback,this);
     currentpos3_sub_ = nh_.subscribe("/drone3/ground_truth_to_tf/pose", 1, &IpasDemo::currentpos3Callback,this);
+    localmap1_sub_ = nh_.subscribe("/localmap1", 1, &IpasDemo::localmap1Callback,this);
+    localmap2_sub_ = nh_.subscribe("/localmap2", 1, &IpasDemo::localmap2Callback,this);
+    localmap3_sub_ = nh_.subscribe("/localmap3", 1, &IpasDemo::localmap3Callback,this);
     updatemapflag_sub_ = nh_.subscribe("/updatemap_flag", 1, &IpasDemo::updatemapflagCallback,this);
-    // goalpos_sub_ = nh_.subscribe("/pose_pub", 1, &IpasDemo::goalCallback,this); 
+    updategraphflag_sub_ = nh_.subscribe("/updategraph_flag", 1, &IpasDemo::updategraphflagCallback,this);
 }
 
 void IpasDemo::initPub() {
@@ -121,10 +128,44 @@ void IpasDemo::currentpos3Callback(const geometry_msgs::PoseStamped& odom3) {
     // posvector[2][6] = odom3.pose.orientation.w;
 }
 
+void IpasDemo::localmap1Callback(const quadrotor_demo::localmap& localmap1) {
+	updateLocalmap(localmap1);
+}
+
+void IpasDemo::localmap2Callback(const quadrotor_demo::localmap& localmap2) {
+	updateLocalmap(localmap2);
+}
+
+void IpasDemo::localmap3Callback(const quadrotor_demo::localmap& localmap3) {
+	updateLocalmap(localmap3);
+}
+
+void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
+	int32_t x_col = int32_t(localmap.xpos);
+	int32_t y_row = int32_t(localmap.ypos);
+	int64_t id = true_grid->GetIDFromCoordinate(x_col, y_row);
+	for(std::vector<quadrotor_demo::obstacle_info>::const_iterator itr = localmap.obstacle_data.begin(); 
+			itr != localmap.obstacle_data.end(); ++itr) {
+		if (itr->isobstacle) {
+			int64_t neighborId = id + index2Id[itr->id];
+			true_grid->SetObstacleRegionLabel(neighborId,1);
+		}
+	}
+}
+
 void IpasDemo::updatemapflagCallback(const std_msgs::Bool& flag_msg) {
     updatemap_flag = flag_msg.data;
     if (updatemap_flag == true) {
     	mobilePath();
+    }
+}
+
+void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
+    updategraph_flag = graphFlag_msg.data;
+    if (updategraph_flag == true) {
+    	true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
+        IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
+        IPASMeasurement::MergeLocalMap(vehicle_team_);
     }
 }
 
@@ -167,7 +208,7 @@ void IpasDemo::sensorPath() {
     //============================================= IPAS ============================================//
     //===============================================================================================// 
     IPASMeasurement::ComputeHotSpots(vehicle_team_,tasks_);
-    TasksSet sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
+    sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
     hotspots.clear();
     hotspots = sensing_tasks_.GetHotspots();
     CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
