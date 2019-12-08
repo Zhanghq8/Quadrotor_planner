@@ -30,10 +30,8 @@ private:
     // bool ready_flag_1 = false;
     // bool ready_flag_2 = false;
     // bool ready_flag_3 = false;
-    bool ready_flag = false;
-    // bool update1Complete = false;
-    // bool update2Complete = false;
-    // bool update3Complete = false;
+    // bool ready_flag = false;
+
     vector<bool> updateComplete;
 
     vector<bool> pidFlag;
@@ -103,6 +101,7 @@ private:
     ros::Publisher update1Map_flag_pub_;
     ros::Publisher update2Map_flag_pub_;
     ros::Publisher update3Map_flag_pub_;
+    ros::Publisher updategraph_flag_pub_;
 
 
 public:

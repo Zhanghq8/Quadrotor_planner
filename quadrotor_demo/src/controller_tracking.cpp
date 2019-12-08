@@ -81,7 +81,7 @@ void Controller_tracking::initPub() {
     control1input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone1/cmd_vel", 1, true); 
     control2input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone2/cmd_vel", 1, true);
     control3input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone3/cmd_vel", 1, true);
-    ready_flag_pub_ = nh_.advertise<std_msgs::Bool>("/ready_flag", 1, true);
+    updategraph_flag_pub_ = nh_.advertise<std_msgs::Bool>("/updategraph_flag", 1, true);
 }
 
 void Controller_tracking::pathCallback(const quadrotor_demo::final_path& path) {
@@ -163,10 +163,6 @@ void Controller_tracking::currentpos1Callback(const geometry_msgs::PoseStamped& 
     posvector[0][4] = odom1.pose.orientation.y;
     posvector[0][5] = odom1.pose.orientation.z;
     posvector[0][6] = odom1.pose.orientation.w;
-
-    std_msgs::Bool flag;
-    flag.data = switchFlag2;
-    ready_flag_pub_.publish(flag);
 
     // set a flag in case this run before we get a path
 
@@ -375,8 +371,15 @@ void Controller_tracking::event3Callback(const geometry_msgs::PoseStamped& odom3
             switchFlag2 = switchFlag23[0] && switchFlag23[1] && switchFlag23[2];
 
             if (switchFlag2) {
-                start_flag = false;
                 updateMap();
+                ros::Rate loop_rate(5);
+                loop_rate.sleep();
+                if (updateComplete[0] && updateComplete[1] && updateComplete[2] && switchFlag2) {
+                    std_msgs::Bool flag;
+                    flag.data = switchFlag2;
+                    updategraph_flag_pub_.publish(flag);
+                }
+                start_flag = false;
                 switchFlag0 = false;
                 switchFlag1 = false;
                 switchFlag2 = false;
