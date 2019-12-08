@@ -59,10 +59,10 @@ void LocalMapUpdate::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-    cout << "---------------------" << endl;
-    cout << "For rostopic: " << topic << endl;
+    // cout << "---------------------" << endl;
+    // cout << "For rostopic: " << topic << endl;
     if (updateFlag) {
-        ros::Rate loop_rate(0.5);
+        ros::Rate loop_rate(0.2);
         loop_rate.sleep();
     	filter(colorImg);
     }
@@ -89,7 +89,6 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     int x = 320-69 , y = 240-69+18, w = 138, h = 138;
     Rect ROI = Rect(x, y, w, h);
     Mat image_roi = color_img(ROI);
-
     // imshow("roi_img", image_roi);
 
     int width = image_roi.rows;  
@@ -168,14 +167,14 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     quadrotor_demo::localmap localmap_msg;
     localmap_msg.xpos = posvector[0];
     localmap_msg.ypos = posvector[1];
-    // quadrotor_demo::obstacle_info obstacle_info_msg;
+
     for (auto itr = obstacle_info.begin(); itr != obstacle_info.end(); itr++) {
         quadrotor_demo::obstacle_info obstacle_msg;
         obstacle_msg.id = itr->first;
         obstacle_msg.isobstacle = itr->second;
         localmap_msg.obstacle_data.push_back(obstacle_msg);
     }
-    // localmap_msg.obstacle_data = obstacle_info_msg;
+
     localmap_pub_.publish(localmap_msg);
 
     updateCompleteFlag = true;
@@ -183,6 +182,7 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     ucf.data = updateCompleteFlag;
     update_complete_pub_.publish(ucf);
     updateFlag = false;
+    cout << topic[6] << updateFlag << endl;
 
     // ThresholdedImg = Imgcopy;
 
