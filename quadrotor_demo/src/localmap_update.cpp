@@ -182,7 +182,6 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     ucf.data = updateCompleteFlag;
     update_complete_pub_.publish(ucf);
     updateFlag = false;
-    cout << topic[6] << updateFlag << endl;
 
     // ThresholdedImg = Imgcopy;
 
