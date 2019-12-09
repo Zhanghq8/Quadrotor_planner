@@ -47,7 +47,7 @@ private:
     ros::NodeHandle nh_;
     ros::Publisher task_pub_;
     ros::Publisher iteration_complete_pub_;
-    // ros::Publisher marker_pub_;
+    ros::Publisher marker_pub_;
     ros::Subscriber currentpos1_sub_;
     ros::Subscriber currentpos2_sub_;
     ros::Subscriber currentpos3_sub_;
@@ -100,6 +100,7 @@ public:
     void mobilePath();
     void sensorPath();
     void updateSensorPos(); 
+    void printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath);
     void updateLocalmap(const quadrotor_demo::localmap& localmap);
     void pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes);
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);

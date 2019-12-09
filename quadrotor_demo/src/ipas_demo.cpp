@@ -23,19 +23,6 @@ void IpasDemo::initMap() {
 
     // Build true map
     true_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1);
-    // for(auto rg: range_idx_){
-    //     for(int ii = rg[0]; ii<rg[1];ii++){
-    //         true_grid->SetObstacleRegionLabel(ii,1);
-    //     }
-    // }
-    // true_grid->SetObstacleRegionLabel(4,1);
-    // true_grid->SetObstacleRegionLabel(5,1);
-    // true_grid->SetObstacleRegionLabel(6,1);
-    // true_grid->SetObstacleRegionLabel(9,1);
-    // true_grid->SetObstacleRegionLabel(14,1);
-    // true_grid->SetObstacleRegionLabel(20,1);
-    // true_grid->SetObstacleRegionLabel(21,1);
-    // true_grid->SetObstacleRegionLabel(22,1);
     true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
     //===============================================================================================//
     //============================================= CBBA ============================================//
@@ -91,11 +78,10 @@ void IpasDemo::initPub() {
     // ROS_INFO("Initializing Publishers");
     task_pub_ = nh_.advertise<quadrotor_demo::final_path>("/sensor_path", 1, true); 
     iteration_complete_pub_ = nh_.advertise<std_msgs::Bool>("/updatemap_flag", 1, true); 
-    // marker_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("visualization_markerarray", 10);
+    marker_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/visualization_markerarray", 10);
     // control1input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone1/cmd_vel", 1, true); 
     // control2input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone2/cmd_vel", 1, true);
     // control3input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone3/cmd_vel", 1, true);
-    // ready_flag_pub_ = nh_.advertise<std_msgs::Bool>("/ready_flag", 1, true);
 }
 
 void IpasDemo::currentpos1Callback(const geometry_msgs::PoseStamped& odom1) {
@@ -219,6 +205,7 @@ void IpasDemo::mobilePath() {
     bool flag_IPAS = IPASMeasurement::IPASConvergence(vehicle_team_,path_ltl_);
     if (flag_IPAS == true) {
     	std::cout << "The required iteration is " << ipas_tt <<std::endl; 
+    	printValidPath(path_ltl_);
         ROS_INFO("Finished...");
         ros::shutdown();
     } else {
@@ -300,6 +287,43 @@ void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
     task_pub_.publish(finalpath_msg);
 }
 
+void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) {
+
+	visualization_msgs::MarkerArray cube_marker_array;
+
+    visualization_msgs::Marker cube_marker;
+    cube_marker.type = visualization_msgs::Marker::CUBE_LIST;
+    cube_marker.action = visualization_msgs::Marker::ADD;
+    cube_marker.ns = "cubes";
+    cube_marker.scale.x = 1;
+    cube_marker.scale.y = 1;
+    cube_marker.scale.z = 0.1;
+    cube_marker.header.frame_id = "/world";
+    cube_marker.color.a = 1.0; 
+    cube_marker.color.r = 1.0;
+    cube_marker.id = 0;
+    cube_marker.lifetime = ros::Duration();
+    // ros::Duration lifetime;
+    // arrow_marker.lifetime = lifetime.fromSec(0.04); // lifetime of 40ms : 25Hz
+
+	for(auto p: validPath){
+    	if (p.first < 3) {
+	        for(auto v: p.second){
+				geometry_msgs::Point obj;
+		        obj.x = v->position_.x;
+		        obj.y = v->position_.y;
+		        // std::cout << "pos: " << obj.x << " " << obj.y << std::endl;
+		        obj.z = 0.1;
+		        cube_marker.points.push_back(obj);
+		        cube_marker.colors.push_back(cube_marker.color);
+		        cube_marker.header.stamp = ros::Time::now();
+		        cube_marker_array.markers.push_back(cube_marker);
+    		}
+    	}
+    }
+    marker_pub_.publish(cube_marker_array);
+}
+
 int main(int argc, char** argv) {
     ros::init(argc, argv, "ipasdemo"); //node name
     ros::NodeHandle nh; 
@@ -318,7 +342,7 @@ int main(int argc, char** argv) {
                                 	Task(2,4,{139},TaskType::RESCUE,num_vehicle),
                                 	Task(3,5,{180},TaskType::RESCUE,num_vehicle),
                                 	Task(4,6,{200},TaskType::RESCUE,num_vehicle),
-                                	Task(5,7,{220},TaskType::RESCUE,num_vehicle)};
+                                	Task(5,7,{150},TaskType::RESCUE,num_vehicle)};
     // Auto Vehicle Team
     // Index of drone, Initial position, # of drones, Communicate network, Task Type, # of tasks
     Eigen::MatrixXi comm = Eigen::MatrixXi::Ones(1,num_vehicle);
