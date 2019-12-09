@@ -4,7 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Grid1
         - /RobotModel1/Links1
+        - /MarkerArray1
       Splitter Ratio: 0.760806918
     Tree Height: 244
   - Class: rviz/Selection
@@ -46,17 +48,17 @@ Visualization Manager:
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 20
-      Reference Frame: <Fixed Frame>
+      Plane Cell Count: 30
+      Reference Frame: world
       Value: true
     - Class: rviz/Marker
-      Enabled: false
+      Enabled: true
       Marker Topic: visualization_marker
       Name: Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
     - Class: rviz/TF
       Enabled: false
       Frame Timeout: 15
@@ -343,7 +345,7 @@ Visualization Manager:
       Marker Topic: /visualization_markerarray
       Name: MarkerArray
       Namespaces:
-        cubes: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -371,25 +373,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 46.732666
+      Distance: 56.1252937
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -5.65110493
-        Y: -1.48143733
-        Z: 3.67824483
+        X: -6.15231848
+        Y: 1.41238534
+        Z: 3.50344849
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.679797173
+      Pitch: 0.65979743
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.04540563
+      Yaw: 3.06041384
     Saved: ~
 Window Geometry:
   Camera:
