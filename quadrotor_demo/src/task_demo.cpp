@@ -33,28 +33,28 @@ int main() {
                                     Task(1,3,{76},TaskType::RESCUE,num_vehicle),
                                     Task(2,4,{139},TaskType::RESCUE,num_vehicle),
                                     Task(3,5,{180},TaskType::RESCUE,num_vehicle),
-                                    Task(4,6,{215},TaskType::RESCUE,num_vehicle),
-                                    Task(5,7,{309},TaskType::RESCUE,num_vehicle)};
+                                    Task(4,6,{200},TaskType::RESCUE,num_vehicle),
+                                    Task(5,7,{220},TaskType::RESCUE,num_vehicle)};
     TasksSet tasks_ = TasksSet(tasks_data_);
     
     // Auto Vehicle Team
     // Index of drone, Initial position, # of drones, Communicate network, Task Type, # of tasks
     Eigen::MatrixXi comm = Eigen::MatrixXi::Ones(1,num_vehicle);
     int64_t num_sensors = 3;
-    std::vector<AutoVehicle> drones = {AutoVehicle(0,0,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    AutoVehicle(1,380,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    AutoVehicle(2,399,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    AutoVehicle(3,0,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
-                                    AutoVehicle(4,380,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
-                                    AutoVehicle(5,399,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors)};
+    std::vector<AutoVehicle> drones = { AutoVehicle(0,0,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                        AutoVehicle(1,210,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                        AutoVehicle(2,224,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                        AutoVehicle(3,0,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                        AutoVehicle(4,210,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                        AutoVehicle(5,224,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors) };
     
     std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team_ = IPASMeasurement::ConstructAutoTeam(drones);
     //===============================================================================================//
     //============================================= MAP =============================================//
     //===============================================================================================//
     // Initialize uncertain map
-    int64_t num_row = 20;
-    int64_t num_col = 20;
+    int64_t num_row = 15;
+    int64_t num_col = 15;
     std::shared_ptr<SquareGrid> uncertain_grid = GridGraph::CreateSquareGrid(num_row,num_col,1,vehicle_team_,tasks_);
 	std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph = GridGraph::BuildGraphFromSquareGrid(uncertain_grid, true);
 
@@ -69,7 +69,7 @@ int main() {
     //         true_grid->SetObstacleRegionLabel(ii,1);
     //     }
     // }
-    true_grid->SetObstacleRegionLabel(42,1);
+    true_grid->SetObstacleRegionLabel(32,1);
     // true_grid->SetObstacleRegionLabel(5,1);
     // true_grid->SetObstacleRegionLabel(6,1);
     // true_grid->SetObstacleRegionLabel(9,1);
