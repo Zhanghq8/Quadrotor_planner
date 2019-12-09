@@ -17,9 +17,9 @@ void Controller_tracking::initVec() {
     posvector = vector<vector<double>> (drone_num, vector<double> (7, 0));
     goalposvector = vector<vector<double>> (drone_num, vector<double> (7, 0));
     goalposvector[0] = {0.5,0.5,0,0,0,0,1};
-    goalposvector[1] = {0.5,19.5,0,0,0,0,1};
-    goalposvector[2] = {19.5,19.5,0,0,0,0,1};
-    waypoint_cnt = vector<int> (drone_num, 1);
+    goalposvector[1] = {0.5,14.5,0,0,0,0,1};
+    goalposvector[2] = {14.5,14.5,0,0,0,0,1};
+    waypoint_cnt = vector<int> (drone_num, 0);
     diffvector = vector<vector<double>> (drone_num, vector<double> (3, 0));
     xyvelocity = vector<vector<double>> (drone_num, vector<double> (3, 0));
     switchFlag01 = vector<bool> (3, false);
@@ -117,21 +117,21 @@ void Controller_tracking::pathCallback(const quadrotor_demo::final_path& path) {
     updateComplete = vector<bool> (3, false);
     //============================== DEBUG ========================//
     //=============================================================//
-    for (int i=0; i<sensorPath.size(); i++) {
-        std::cout << "================================" << std::endl;
-        for (int j=0; j<sensorPath[i].size(); j++) {
-            for (int k=0; k<sensorPath[i][j].size(); k++) {
-                std::cout << sensorPath[i][j][k].id << " " << sensorPath[i][j][k].x << " " << sensorPath[i][j][k].y << std::endl;
-            }
-            std::cout << "sensorPath " << i << " " << j << " size: " << sensorPath[i][j].size() << std::endl;
-        }
-        std::cout << "sensorPath " << i << " size: " << sensorPath[i].size() << std::endl;
-    }
-    std::cout << "sensorPath size:" << sensorPath.size() << std::endl;
+    // for (int i=0; i<sensorPath.size(); i++) {
+    //     std::cout << "================================" << std::endl;
+    //     for (int j=0; j<sensorPath[i].size(); j++) {
+    //         for (int k=0; k<sensorPath[i][j].size(); k++) {
+    //             std::cout << sensorPath[i][j][k].id << " " << sensorPath[i][j][k].x << " " << sensorPath[i][j][k].y << std::endl;
+    //         }
+    //         std::cout << "sensorPath " << i << " " << j << " size: " << sensorPath[i][j].size() << std::endl;
+    //     }
+    //     std::cout << "sensorPath " << i << " size: " << sensorPath[i].size() << std::endl;
+    // }
+    // std::cout << "sensorPath size:" << sensorPath.size() << std::endl;
     //=============================================================//
     //=============================================================//
     setgoalpos();
-    waypoint_cnt = vector<int> (drone_num, 1);
+    waypoint_cnt = vector<int> (drone_num, 0);
 }
 
 void Controller_tracking::currentpos3Callback(const geometry_msgs::PoseStamped& odom3) {
@@ -178,13 +178,6 @@ void Controller_tracking::currentpos1Callback(const geometry_msgs::PoseStamped& 
             }
         }
     }
-
-// if ((ready_flag_1 && ready_flag_2 && ready_flag_3)) {
-//     ready_flag = true;
-// }
-// else {
-//     ready_flag = false;
-// }
 
     //e_k, e_P, e_I, e_D, E_k, e_k_previous 
     for (int i=0; i<drone_num; i++) {
@@ -256,7 +249,7 @@ void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1
                     // std::cout << "waypoint: " << waypoint_cnt[i] << std::endl;
                     if ((abs(posvector[i][0] - goalposvector[i][0])<d*0.1) && (abs(posvector[i][1] - goalposvector[i][1])<d*0.1) 
                         && (posvector[i][0] * goalposvector[i][0] > 0.01)) {
-                        if (waypoint_cnt[i] == sensorPath[i][0].size()) {
+                        if (waypoint_cnt[i] == sensorPath[i][0].size() - 1) {
                             std::cout << "Event1 for Drone(sensor) " << i << " Waypoint " << waypoint_cnt[i] << " reached. " << std::endl;
                             std::cout << "Event1 for Drone(sensor) " << i << " reached!!!!!!. " << std::endl;
                             updateMapFlag[i] = true;
@@ -268,16 +261,19 @@ void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1
                         }
                         else {   
                             std::cout << "Event1 for Drone(sensor) " << i << " Waypoint " << waypoint_cnt[i] << " reached. " << std::endl;
-                            if (waypoint_cnt[i] == sensorPath[i][1].size() - 1) {
-                                pidFlag[i] = true;
-                            } else {
-                                pidFlag[i] = false;
-                            }
+                            // if (waypoint_cnt[i] == sensorPath[i][1].size() - 2) {
+                            //     pidFlag[i] = true;
+                            // } else {
+                            //     pidFlag[i] = false;
+                            // }
                             waypoint_cnt[i]++;
-                            goalposvector[i][0] = sensorPath[i][0][waypoint_cnt[i]-1].x;
-                            goalposvector[i][1] = sensorPath[i][0][waypoint_cnt[i]-1].y;
+                            goalposvector[i][0] = sensorPath[i][0][waypoint_cnt[i]].x;
+                            goalposvector[i][1] = sensorPath[i][0][waypoint_cnt[i]].y;
                         }
                     } 
+                } else {
+                    switchFlag01[i] = true;
+                    updateComplete[i] = true;
                 }
             } else {
                 switchFlag01[i] = true;
@@ -286,7 +282,7 @@ void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1
         }
         switchFlag0 = switchFlag01[0] && switchFlag01[1] && switchFlag01[2];
         if (switchFlag0) {
-            waypoint_cnt = vector<int> (drone_num, 1);
+            waypoint_cnt = vector<int> (drone_num, 0);
             updateMap();
         }
     }
@@ -294,7 +290,6 @@ void Controller_tracking::event1Callback(const geometry_msgs::PoseStamped& odom1
 }
 
 void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2) {
-    
     if (switchFlag0 && !switchFlag1 && !switchFlag2 && start_flag && (updateComplete[0] && updateComplete[1] && updateComplete[2])) {
         for (int i=0; i<drone_num; i++) {
         // check if the there is task for dronei
@@ -303,7 +298,7 @@ void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2
                 if (!sensorPath[i][1].empty()) {
                     if ((abs(posvector[i][0] - goalposvector[i][0])<d*0.1) && (abs(posvector[i][1] - goalposvector[i][1])<d*0.1 ) 
                         && (posvector[i][0] * goalposvector[i][0] > 0.01)) {
-                        if (waypoint_cnt[i] == sensorPath[i][1].size()) {
+                        if (waypoint_cnt[i] == sensorPath[i][1].size() - 1) {
                             std::cout << "Event2 for Drone(sensor) " << i << " Waypoint " << waypoint_cnt[i] << " reached. " << std::endl;
                             std::cout << "Event2 for Drone(sensor) " << i << " reached!!!!!!. " << std::endl;
                             updateMapFlag[i] = true;
@@ -315,16 +310,19 @@ void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2
                         }
                         else {   
                             std::cout << "Event2 for Drone(sensor) " << i << " Waypoint " << waypoint_cnt[i] << " reached. " << std::endl;
-                            if (waypoint_cnt[i] == sensorPath[i][1].size() - 1) {
-                                pidFlag[i] = true;
-                            } else {
-                                pidFlag[i] = false;
-                            }
+                            // if (waypoint_cnt[i] == sensorPath[i][1].size() - 2) {
+                            //     pidFlag[i] = true;
+                            // } else {
+                            //     pidFlag[i] = false;
+                            // }
                             waypoint_cnt[i]++;
-                            goalposvector[i][0] = sensorPath[i][1][waypoint_cnt[i]-1].x;
-                            goalposvector[i][1] = sensorPath[i][1][waypoint_cnt[i]-1].y;
+                            goalposvector[i][0] = sensorPath[i][1][waypoint_cnt[i]].x;
+                            goalposvector[i][1] = sensorPath[i][1][waypoint_cnt[i]].y;
                         }
                     }
+                } else {
+                    switchFlag12[i] = true;
+                    updateComplete[i] = true;
                 }
             } else {
                 switchFlag12[i] = true;
@@ -333,7 +331,7 @@ void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2
         }
         switchFlag1 = switchFlag12[0] && switchFlag12[1] && switchFlag12[2];
         if (switchFlag1) {
-            waypoint_cnt = vector<int> (drone_num, 1);
+            waypoint_cnt = vector<int> (drone_num, 0);
             updateMap();
         }
     }    
@@ -348,7 +346,7 @@ void Controller_tracking::event3Callback(const geometry_msgs::PoseStamped& odom3
                 if (!sensorPath[i][2].empty()) {
                     if ((abs(posvector[i][0] - goalposvector[i][0])<d*0.1) && (abs(posvector[i][1] - goalposvector[i][1])<d*0.1 ) 
                         && (posvector[i][0] * goalposvector[i][0] > 0.01)) {
-                        if (waypoint_cnt[i] == sensorPath[i][2].size()) {
+                        if (waypoint_cnt[i] == sensorPath[i][2].size() - 1) {
                             std::cout << "Event3 for Drone(sensor) " << i << " Waypoint " << waypoint_cnt[i] << " reached. " << std::endl;
                             std::cout << "Event3 for Drone(sensor) " << i << " reached!!!!!!. " << std::endl;
                             updateMapFlag[i] = true;
@@ -360,17 +358,19 @@ void Controller_tracking::event3Callback(const geometry_msgs::PoseStamped& odom3
                         } else {   
                             std::cout << "Event3 for Drone(sensor) " << i << " Waypoint " << waypoint_cnt[i] << " reached. " << std::endl;
                             // cout << "currentpos: " << posvector[i][0] << " " << posvector[i][1] << endl;
-                            if (waypoint_cnt[i] == sensorPath[i][1].size() - 1) {
-                                pidFlag[i] = true;
-                            } else {
-                                pidFlag[i] = false;
-                            }
+                            // if (waypoint_cnt[i] == sensorPath[i][1].size() - 2) {
+                            //     pidFlag[i] = true;
+                            // } else {
+                            //     pidFlag[i] = false;
+                            // }
                             waypoint_cnt[i]++;
-                            goalposvector[i][0] = sensorPath[i][2][waypoint_cnt[i]-1].x;
-                            goalposvector[i][1] = sensorPath[i][2][waypoint_cnt[i]-1].y;
+                            goalposvector[i][0] = sensorPath[i][2][waypoint_cnt[i]].x;
+                            goalposvector[i][1] = sensorPath[i][2][waypoint_cnt[i]].y;
                         }
                     }
-                } 
+                } else {
+                    switchFlag23[i] = true;
+                }
             } else {
                 switchFlag23[i] = true;
             }

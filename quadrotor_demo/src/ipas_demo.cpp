@@ -253,35 +253,48 @@ void IpasDemo::sensorPath() {
 
 void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
 	quadrotor_demo::final_path finalpath_msg;
+	quadrotor_demo::path path_msg_empty;
 	// int path_size = pathes.size();
-	bool endFlag = false;
     for(auto p: pathes){
     	if (p.first >= 3) {
     		quadrotor_demo::pathes pathes_msg;
         	pathes_msg.path_name = std::string("Drone ") + std::string(std::to_string(p.first-2));
-        	pathes_msg.empty = true;
-        	quadrotor_demo::path path_msg;
-	        for(auto v: p.second){
-	        	pathes_msg.empty = false;
-	        	quadrotor_demo::pose pose_msg;
-	        	pose_msg.x = v->position_.x;
-	        	pose_msg.y = v->position_.y;
-	        	pose_msg.id = v->id_;
-	        	pose_msg.xcoordinate = v->coordinate_.x;
-	        	pose_msg.ycoordinate = v->coordinate_.y;
-	        	path_msg.path.push_back(pose_msg);
-	        	if (hotspots.count(v->id_) && hotspots.size() != 1) {
-	        		hotspots.erase(v->id_);
-	        		pathes_msg.pathes_data.push_back(path_msg);
-	        		path_msg.path.clear();
-	        		
-	        		if (v->id_ != p.second.back()->id_) {
-	        			path_msg.path.push_back(pose_msg);
-	        		}
-	        	}
-	        }
-        	pathes_msg.pathes_data.push_back(path_msg);
-	        finalpath_msg.final_path.push_back(pathes_msg);
+        	if (p.second.empty()) {
+        		pathes_msg.empty = true;
+        		int cnt = 3;
+        		while (cnt > 0) {
+        			pathes_msg.pathes_data.push_back(path_msg_empty);
+        			cnt--;
+        		}
+		        finalpath_msg.final_path.push_back(pathes_msg);
+        	} else {
+        		pathes_msg.empty = false;
+	    		quadrotor_demo::path path_msg;
+	    		int cnt = 0;
+		        for(auto v: p.second){
+		        	quadrotor_demo::pose pose_msg;
+		        	pose_msg.x = v->position_.x;
+		        	pose_msg.y = v->position_.y;
+		        	pose_msg.id = v->id_;
+		        	pose_msg.xcoordinate = v->coordinate_.x;
+		        	pose_msg.ycoordinate = v->coordinate_.y;
+		        	path_msg.path.push_back(pose_msg);
+		        	if (hotspots.count(v->id_)) {
+		        		cnt++;
+		        		pathes_msg.pathes_data.push_back(path_msg);
+		        		if (v->id_ != p.second.back()->id_) {
+		        			path_msg.path.clear();
+		        		} else {
+		        			continue;
+		        		}
+		        	}
+		        }
+		        while (cnt < 3) {
+	        		pathes_msg.pathes_data.push_back(path_msg_empty);
+	        		cnt++;
+		        }
+		        finalpath_msg.final_path.push_back(pathes_msg);
+        	}        	
     	}
     }
     task_pub_.publish(finalpath_msg);
@@ -304,21 +317,21 @@ int main(int argc, char** argv) {
                                 	Task(1,3,{76},TaskType::RESCUE,num_vehicle),
                                 	Task(2,4,{139},TaskType::RESCUE,num_vehicle),
                                 	Task(3,5,{180},TaskType::RESCUE,num_vehicle),
-                                	Task(4,6,{215},TaskType::RESCUE,num_vehicle),
-                                	Task(5,7,{309},TaskType::RESCUE,num_vehicle)};
+                                	Task(4,6,{200},TaskType::RESCUE,num_vehicle),
+                                	Task(5,7,{220},TaskType::RESCUE,num_vehicle)};
     // Auto Vehicle Team
     // Index of drone, Initial position, # of drones, Communicate network, Task Type, # of tasks
     Eigen::MatrixXi comm = Eigen::MatrixXi::Ones(1,num_vehicle);
     int64_t num_sensors = 3;
     std::vector<AutoVehicle> agents = { AutoVehicle(0,0,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    	AutoVehicle(1,380,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    	AutoVehicle(2,399,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    	AutoVehicle(1,210,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    	AutoVehicle(2,224,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
                                     	AutoVehicle(3,0,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
-                                    	AutoVehicle(4,380,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
-                                    	AutoVehicle(5,399,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors) };
+                                    	AutoVehicle(4,210,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                    	AutoVehicle(5,224,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors) };
 
-    int64_t num_row = 20;
-    int64_t num_col = 20;
+    int64_t num_row = 15;
+    int64_t num_col = 15;
 
     IpasDemo ipasdemo(&nh, tasks_data, agents, comm, num_vehicle, num_tasks, num_sensors, num_row, num_col);
     	
