@@ -242,8 +242,8 @@ void IpasDemo::sensorPath() {
 	        std::cout << "The path for sensor " << p.first << " is: ";
 	        for(auto v: p.second){
 	            std::cout << v->id_ <<", ";
-                std::cout << "The (x, y) : (" << v->position_.x << ", " << v->position_.y << ")" <<", ";
-        		std::cout << "The (row,col) : (" << v->coordinate_.x << ", "<< v->coordinate_.y << ")" <<". ";
+          //       std::cout << "The (x, y) : (" << v->position_.x << ", " << v->position_.y << ")" <<", ";
+        		// std::cout << "The (row,col) : (" << v->coordinate_.x << ", "<< v->coordinate_.y << ")" <<". ";
 	        }
 	        std::cout << std::endl;
     	}
