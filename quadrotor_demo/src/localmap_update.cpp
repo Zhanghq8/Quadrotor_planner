@@ -59,6 +59,10 @@ void LocalMapUpdate::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
+    int x = 320-69 , y = 240-69+18, w = 138, h = 138;
+    Rect ROI = Rect(x, y, w, h);
+    Mat image_roi = colorImg(ROI);
+    // imshow("roi_img", image_roi);
     // cout << "---------------------" << endl;
     // cout << "For rostopic: " << topic << endl;
     if (updateFlag) {
@@ -73,10 +77,18 @@ void LocalMapUpdate::updatemapflagCallback(const std_msgs::Bool& flag) {
 }
 
 void LocalMapUpdate::filter(const Mat& color_img) {      
-    // grid number to coordinates
-    unordered_map<int, pair<int,int>> coordinates({ {0,{-1,-1}}, {1,{0,-1}}, {2, {1,-1}} ,
-                                                    {3,{-1,0}}, {4,{0,0}}, {5,{1,0}},
-                                                    {6,{-1,1}}, {7,{0,-1}}, {8,{1,1}} });
+    // grid number to coordinates in map
+    // unordered_map<int, pair<int,int>> coordinates({ {0,{-1,1}}, {1,{0,1}}, {2, {1,1}} ,
+    //                                                 {3,{-1,0}}, {4,{0,0}}, {5,{1,0}},
+    //                                                 {6,{-1,-1}}, {7,{0,-1}}, {8,{1,-1}} });
+
+    // grid number in image to grid number in map
+    unordered_map<int, int> imageId2mapId({{6,0}, {3,1}, {0,2}, {7,3}, {4,4}, {1,5}, {8,6}, {5,7},{2,8}}); 
+    //    image     map
+    //     630      012
+    //     741      345
+    //     852      678
+
     // grid number vector
     vector<vector<bool>> occupancy(3, vector<bool> (3, false));
     vector<int> cover(9, 0);  
@@ -157,10 +169,10 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     }
 
     for (int i=0; i<cover.size(); i++) {
-        if (cover[i] >= 265) {
-            obstacle_info.insert({i, true});
+        if (cover[i] >= 2116/2) {
+            obstacle_info.insert({imageId2mapId[i], true});
         } else {
-            obstacle_info.insert({i, false});
+            obstacle_info.insert({imageId2mapId[i], false});
         }
     }
 
@@ -168,11 +180,14 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     localmap_msg.xpos = posvector[0];
     localmap_msg.ypos = posvector[1];
 
+    // TO DO: consider boundry of the map
     for (auto itr = obstacle_info.begin(); itr != obstacle_info.end(); itr++) {
-        quadrotor_demo::obstacle_info obstacle_msg;
-        obstacle_msg.id = itr->first;
-        obstacle_msg.isobstacle = itr->second;
-        localmap_msg.obstacle_data.push_back(obstacle_msg);
+        if (itr->first != 0 && itr->first != 2 && itr->first != 6 && itr->first != 8) {
+            quadrotor_demo::obstacle_info obstacle_msg;
+            obstacle_msg.id = itr->first;
+            obstacle_msg.isobstacle = itr->second;
+            localmap_msg.obstacle_data.push_back(obstacle_msg);
+        }
     }
 
     localmap_pub_.publish(localmap_msg);
