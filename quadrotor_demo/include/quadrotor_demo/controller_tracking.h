@@ -48,7 +48,7 @@ private:
     double kp;
     double kd;
     double ki;
-    double d=1.0;
+    double d=0.5;
 
     vector<int> waypoint_cnt;
     // vector<int> waypoint_cnt2;
