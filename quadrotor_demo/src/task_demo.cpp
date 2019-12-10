@@ -32,9 +32,9 @@ int main() {
     std::vector<Task> tasks_data_ = {Task(0,2,{67},TaskType::RESCUE,num_vehicle),
                                     Task(1,3,{76},TaskType::RESCUE,num_vehicle),
                                     Task(2,4,{139},TaskType::RESCUE,num_vehicle),
-                                    Task(3,5,{180},TaskType::RESCUE,num_vehicle),
-                                    Task(4,6,{200},TaskType::RESCUE,num_vehicle),
-                                    Task(5,7,{220},TaskType::RESCUE,num_vehicle)};
+                                    Task(3,5,{190},TaskType::RESCUE,num_vehicle),
+                                    Task(4,6,{130},TaskType::RESCUE,num_vehicle),
+                                    Task(5,7,{150},TaskType::RESCUE,num_vehicle)};
     TasksSet tasks_ = TasksSet(tasks_data_);
     
     // Auto Vehicle Team
@@ -60,16 +60,17 @@ int main() {
 
     // Build true map
     std::shared_ptr<SquareGrid> true_grid = GridGraph::CreateSquareGrid(num_row,num_col,1);
-    // std::vector<std::vector<int64_t>> range_idx_ = {{15,20},{36,40},{56,60},{78,80},{40,48},{60,67},{80,86},
+    std::vector<std::vector<int64_t>> range_idx_ = {{30,36}};
+    // {{15,20},{36,40},{56,60},{78,80},{40,48},{60,67},{80,86},
     //                                             {100,105},{120,124},{140,143},{151,160},{171,180},{191,200},
     //                                             {211,214},{217,220},{231,234},{237,240},{220,226},{240,246},
     //                                             {260,266},{327,331},{346,352},{366,372},{387,391}};
-    // for(auto rg: range_idx_){
-    //     for(int ii = rg[0]; ii<rg[1];ii++){
-    //         true_grid->SetObstacleRegionLabel(ii,1);
-    //     }
-    // }
-    true_grid->SetObstacleRegionLabel(32,1);
+    for(auto rg: range_idx_){
+        for(int ii = rg[0]; ii<rg[1];ii++){
+            true_grid->SetObstacleRegionLabel(ii,1);
+        }
+    }
+    // true_grid->SetObstacleRegionLabel(32,1);
     // true_grid->SetObstacleRegionLabel(5,1);
     // true_grid->SetObstacleRegionLabel(6,1);
     // true_grid->SetObstacleRegionLabel(9,1);
@@ -127,6 +128,7 @@ int main() {
             std::cout << std::endl;
         }
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
+
         IPASMeasurement::MergeLocalMap(vehicle_team_);
     }
 

@@ -53,9 +53,9 @@ void IpasDemo::init() {
 	updatemap_flag = true;
 	updategraph_flag = false;
 	ipas_tt = 0;
-	index2Id = {{0,-num_col_-1}, {1,-num_col_}, {2, -num_col_+1},
+	index2Id = {{0,+num_col_-1}, {1,num_col_}, {2, +num_col_+1},
 				{3,-1}, {4,0}, {5,1},
-				{6,num_col_-1}, {7,num_col_}, {8,num_col_+1}};
+				{6,-num_col_-1}, {7,-num_col_}, {8,-num_col_+1}};
 	tasks_ = TasksSet(tasks_data_);
 	vehicle_team_ = IPASMeasurement::ConstructAutoTeam(agents_);
 	initMap();
@@ -135,6 +135,9 @@ void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
 			itr != localmap.obstacle_data.end(); ++itr) {
 		if (itr->isobstacle) {
 			int64_t neighborId = id + index2Id[itr->id];
+			std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
+			std::cout << "id: " << itr->id << " neighborid: " << neighborId << std::endl; 
+			std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
 			true_grid->SetObstacleRegionLabel(neighborId,1);
 		}
 	}
@@ -155,6 +158,20 @@ void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
     	updateSensorPos();
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
+     //    std::vector<Vertex_t<SquareCell*>*> vts = true_graph->GetAllVertex();
+	    // for(auto vt: vts){
+	    //     std::cout << "Vertex " << vt->state_->id_ << ", ";
+	    //     std::cout << "The (x, y) : (" << vt->state_->position_.x << ", " << vt->state_->position_.y << ") ";
+	    //     std::cout << "The (row,col) : (" << vt->state_->coordinate_.x << ", "<< vt->state_->coordinate_.y << ") "; 
+	    //     std::cout << "The probability p is " << vt->state_->p_ << ", and IG is " << vt->state_->ig_ << " ";
+	    //     std::cout << "The neighbors are: " <<std::endl; 
+	    //     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
+	    //     for(auto nb: neighbs){
+	    //         auto ecost = vt->GetEdgeCost(nb);
+	    //         std::cout << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost <<std::endl;
+	    //     }
+	    //     std::cout << "=============================================" <<std::endl;
+	    // }
         std::cout << "Localmap Updated!" << std::endl;
         std_msgs::Bool iterationComplete_flag;
         iterationComplete_flag.data = true;
@@ -340,8 +357,8 @@ int main(int argc, char** argv) {
     std::vector<Task> tasks_data = {Task(0,2,{67},TaskType::RESCUE,num_vehicle),
                                 	Task(1,3,{76},TaskType::RESCUE,num_vehicle),
                                 	Task(2,4,{139},TaskType::RESCUE,num_vehicle),
-                                	Task(3,5,{180},TaskType::RESCUE,num_vehicle),
-                                	Task(4,6,{200},TaskType::RESCUE,num_vehicle),
+                                	Task(3,5,{190},TaskType::RESCUE,num_vehicle),
+                                	Task(4,6,{130},TaskType::RESCUE,num_vehicle),
                                 	Task(5,7,{150},TaskType::RESCUE,num_vehicle)};
     // Auto Vehicle Team
     // Index of drone, Initial position, # of drones, Communicate network, Task Type, # of tasks
