@@ -241,6 +241,7 @@ void IpasDemo::mobilePath() {
     if (flag_IPAS == true) {
     	std::cout << "The required iteration is " << ipas_tt <<std::endl; 
     	printValidPath(path_ltl_);
+    	file_path.close();
         ROS_INFO("Finished...");
         ros::shutdown();
     } else {

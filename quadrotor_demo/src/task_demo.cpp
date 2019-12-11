@@ -149,8 +149,8 @@ int main() {
         }
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
-        file_path.close();
+        
     }
-
+    file_path.close();
 	return 0;
 }
