@@ -404,13 +404,13 @@ namespace librav{
 			}
 			// std::cout << "After consensus " << std::endl;
 			// for(auto& agent: vehicle_team->auto_team_){
-			// 	std::cout << "Vehicle " << agent->vehicle_.idx_ << std::endl;
+			// 	std::cout << "Vehicle " << agent->idx_ << std::endl;
 			// 	std::cout << "The info of winner is: " << std::endl;
-			// 	std::cout << agent->vehicle_.cbba_z_ << std::endl;
+			// 	std::cout << agent->cbba_z_ << std::endl;
 			// 	std::cout << "The info of highest bid is " << std::endl;
-			// 	std::cout << agent->vehicle_.cbba_y_ << std::endl;
+			// 	std::cout << agent->cbba_y_ << std::endl;
 			// 	std::cout << "The task assignment result is ";
-			// 	for (auto& tt: agent->vehicle_.task_path_){
+			// 	for (auto& tt: agent->task_path_){
 			// 		std::cout << tt << ", ";
 			// 	} 
 			// 	std::cout << std::endl;
@@ -419,13 +419,13 @@ namespace librav{
 			CBBA::BundleConstruction(vehicle_team,tasks);
 			// std::cout << "After bundle construction " << std::endl;
 			// for(auto& agent: vehicle_team->auto_team_){
-			// 	std::cout << "Vehicle " << agent->vehicle_.idx_ << std::endl;
+			// 	std::cout << "Vehicle " << agent->idx_ << std::endl;
 			// 	std::cout << "The info of winner is: " << std::endl;
-			// 	std::cout << agent->vehicle_.cbba_z_ << std::endl;
+			// 	std::cout << agent->cbba_z_ << std::endl;
 			// 	std::cout << "The info of highest bid is " << std::endl;
-			// 	std::cout << agent->vehicle_.cbba_y_ << std::endl;
+			// 	std::cout << agent->cbba_y_ << std::endl;
 			// 	std::cout << "The task assignment result is ";
-			// 	for (auto& tt: agent->vehicle_.task_path_){
+			// 	for (auto& tt: agent->task_path_){
 			// 		std::cout << tt << ", ";
 			// 	} 
 			// 	std::cout << std::endl;
