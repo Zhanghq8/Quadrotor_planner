@@ -4,6 +4,8 @@
 #include <tuple>
 #include <algorithm>
 #include <bitset>
+#include <iostream>
+#include <fstream>
 
 // self-defined library
 #include "../include/quadrotor_demo/graph/graph.hpp"
@@ -82,12 +84,16 @@ int main() {
     //===============================================================================================//
     //============================================= CBBA ============================================//
     //===============================================================================================//   
+    std::ofstream file_path;
+    file_path.open("/home/han/quadrotordemo_ws/src/path.txt",std::ios::trunc);
+
     // Initialize local_grid and local_graph
     IPASMeasurement::InitLocalGraph(vehicle_team_,uncertain_grid);   
     int64_t ipas_tt = 0;
     while (true){
         ipas_tt ++;
         std::cout << "Iteration: " << ipas_tt << std::endl;
+        file_path << "Iteration: " << ipas_tt << "\n";
         // Implement the CBBA to determine the task assignment
         CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
         // Compute the path for the auto team while satisfying its local assignment
@@ -99,10 +105,13 @@ int main() {
         std::cout << "Convergence for task assignment is achieved." << std::endl;
         for(auto p: path_ltl_){
             std::cout << "The path for vehicle " << p.first << " is: ";
+            file_path << "The path for vehicle " << p.first << " is: ";
             for(auto v: p.second){
                 std::cout << v->id_ <<", ";
+                file_path << v->id_ <<", ";
             }
             std::cout << std::endl;
+            file_path << "\n";
         }
         //=============================================================//
         //=============================================================//
@@ -122,14 +131,25 @@ int main() {
         std::cout << path_sensing_.size() << std::endl;
         for(auto p: path_sensing_){
             std::cout << "The path for sensor " << p.first << " is: ";
+            file_path << "The path for sensor " << p.first << " is: ";
             for(auto v: p.second){
                 std::cout << v->id_ <<", ";
+                file_path << v->id_ <<", ";
             }
             std::cout << std::endl;
+            file_path << "\n";
+        }
+
+        // Update initial position for sensors
+        for(auto agent: vehicle_team_->auto_team_){
+            if (agent->vehicle_type_ == TaskType::MEASURE && !agent->task_path_.empty()){
+                Task tsk = sensing_tasks_.GetTaskFromID(agent->task_path_.back());
+                agent->pos_ = tsk.pos_.front();
+            }
         }
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
-
         IPASMeasurement::MergeLocalMap(vehicle_team_);
+        file_path.close();
     }
 
 	return 0;

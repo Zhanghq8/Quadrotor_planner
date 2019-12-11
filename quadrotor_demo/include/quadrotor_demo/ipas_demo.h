@@ -11,6 +11,7 @@
 #include <assert.h> 
 #include <unordered_set>
 #include <unordered_map>
+#include <fstream>
 
 // self-defined library
 #include "graph/graph.hpp"
@@ -86,6 +87,8 @@ private:
     std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph;
     std::shared_ptr<SquareGrid> true_grid;
     std::shared_ptr<Graph_t<SquareCell *>> true_graph;
+
+	std::ofstream file_path;
 
 public:
 	// IpasDemo(ros::NodeHandle* nodehandle);

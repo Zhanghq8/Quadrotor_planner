@@ -11,6 +11,7 @@ IpasDemo::IpasDemo(ros::NodeHandle* nodehandle, std::vector<Task>& tasks_data, s
 	init();
     initSub();
     initPub();
+    file_path.open("/home/han/quadrotordemo_ws/src/ipas.txt",std::ios::trunc);
 }
 
 IpasDemo::~IpasDemo() {
@@ -135,6 +136,19 @@ void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
 			itr != localmap.obstacle_data.end(); ++itr) {
 		if (itr->isobstacle) {
 			int64_t neighborId = id + index2Id[itr->id];
+			// check if the id is within the boundry of the map
+			// check the up and bottom boundry
+			if (neighborId < 0 || neighborId > num_col_ * num_row_) {
+				continue;
+			}
+			// check the left boundry
+			if (id % num_col_ == 0 && neighborId == id - 1) {
+				continue;
+			}
+			// check the right boundry
+			if ((id+1) % num_col_ == 0 && neighborId == id + 1) {
+				continue;
+			}
 			std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
 			std::cout << "id: " << itr->id << " neighborid: " << neighborId << std::endl; 
 			std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
@@ -198,6 +212,7 @@ void IpasDemo::mobilePath() {
 	std::cout << "======================================" << std::endl;
 	std::cout << "======================================" << std::endl;
 	std::cout << "Iteration: " << ipas_tt << std::endl;
+	file_path << "Iteration: " << ipas_tt << "\n";
     // Implement the CBBA to determine the task assignment
     CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
     // Compute the path for the auto team while satisfying its local assignment
@@ -208,10 +223,13 @@ void IpasDemo::mobilePath() {
     for(auto p: path_ltl_){
     	if (p.first < 3) {
 	        std::cout << "The path for vehicle " << p.first << " is: ";
+	        file_path << "The path for vehicle " << p.first << " is: ";
 	        for(auto v: p.second){
 	            std::cout << v->id_ <<", ";
+	            file_path << v->id_ <<", ";
 	        }
 	        std::cout << std::endl;
+	        file_path << "\n";
     	}
     }
     //=============================================================//
@@ -244,12 +262,15 @@ void IpasDemo::sensorPath() {
     for(auto p: path_sensing_){
     	if (p.first >= 3) {
 	        std::cout << "The path for sensor " << p.first << " is: ";
+	        file_path << "The path for vehicle " << p.first << " is: ";
 	        for(auto v: p.second){
 	            std::cout << v->id_ <<", ";
+	            file_path << v->id_ <<", ";
           //       std::cout << "The (x, y) : (" << v->position_.x << ", " << v->position_.y << ")" <<", ";
         		// std::cout << "The (row,col) : (" << v->coordinate_.x << ", "<< v->coordinate_.y << ")" <<". ";
 	        }
 	        std::cout << std::endl;
+	        file_path << "\n";
     	}
     }
     pathesPub(path_sensing_);
