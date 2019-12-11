@@ -47,6 +47,8 @@ void IpasDemo::initMap() {
     //     std::cout << "=============================================" <<std::endl;
     // }   
 
+
+
 }
 
 
@@ -152,9 +154,14 @@ void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
 			std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
 			std::cout << "id: " << itr->id << " neighborid: " << neighborId << std::endl; 
 			std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
-			true_grid->SetObstacleRegionLabel(neighborId,1);
+			obstacles.insert(neighborId);
 		}
 	}
+	std::shared_ptr<SquareGrid> new_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1);
+	for (auto itr = obstacles.begin(); itr != obstacles.end(); itr++) {
+		new_grid->SetObstacleRegionLabel(*itr,1);
+	}
+	true_grid = new_grid;
 }
 
 void IpasDemo::updatemapflagCallback(const std_msgs::Bool& flag_msg) {
@@ -168,24 +175,65 @@ void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
     updategraph_flag = graphFlag_msg.data;
     if (updategraph_flag == true) {
     	true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
+    	   // //======================================== TEST ===============================================//
+    // std::vector<Vertex_t<SquareCell*>*> vts = true_graph->GetAllVertex();
+    // for(auto vt: vts){
+    //     std::cout << "Vertex " << vt->state_->id_ << ": "<< std::endl;
+    //     std::cout << "The (x, y) : (" << vt->state_->position_.x << ", " << vt->state_->position_.y << ")" <<std::endl;
+    //     std::cout << "The (row,col) : (" << vt->state_->coordinate_.x << ", "<< vt->state_->coordinate_.y << ")" <<std::endl; 
+    //     std::cout << "The probability p is " << vt->state_->p_ << ", and IG is " << vt->state_->ig_ <<std::endl;
+    //     std::cout << "The neighbors are: " <<std::endl;
+    //     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
+    //     for(auto nb: neighbs){
+    //         auto ecost = vt->GetEdgeCost(nb);
+    //         std::cout << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost <<std::endl;
+    //     }
+    //     std::cout << "=============================================" <<std::endl;
+    // }   
+  //   	std::vector<Vertex_t<SquareCell*>*> vts = true_graph->GetAllVertex();
+		// for(auto vt: vts){
+
+		//     file_path << "Vertex " << vt->state_->id_ << ": "<<  "\n";
+		//     file_path << "The neighbors are: " << "\n";
+		//     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
+		//     for(auto nb: neighbs){
+		//         auto ecost = vt->GetEdgeCost(nb);
+		//         file_path << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost << "\n";
+		//     }
+		//     file_path << "=============================================" << "\n";
+		// }   
+
     	// update sensor pose
     	updateSensorPos();
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
-     //    std::vector<Vertex_t<SquareCell*>*> vts = true_graph->GetAllVertex();
-	    // for(auto vt: vts){
-	    //     std::cout << "Vertex " << vt->state_->id_ << ", ";
-	    //     std::cout << "The (x, y) : (" << vt->state_->position_.x << ", " << vt->state_->position_.y << ") ";
-	    //     std::cout << "The (row,col) : (" << vt->state_->coordinate_.x << ", "<< vt->state_->coordinate_.y << ") "; 
-	    //     std::cout << "The probability p is " << vt->state_->p_ << ", and IG is " << vt->state_->ig_ << " ";
-	    //     std::cout << "The neighbors are: " <<std::endl; 
-	    //     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
-	    //     for(auto nb: neighbs){
-	    //         auto ecost = vt->GetEdgeCost(nb);
-	    //         std::cout << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost <<std::endl;
-	    //     }
-	    //     std::cout << "=============================================" <<std::endl;
-	    // }
+        int cnt = 0;
+        file_path << "=============================================" << "\n";
+        file_path << "=============================================" << "\n";
+        for (auto element : vehicle_team_->auto_team_) {
+        	file_path << "local graph " <<cnt << ": "<<  "\n";
+        	std::shared_ptr<Graph_t<SquareCell*>> new_graph = element->local_graph_;
+	    	std::vector<Vertex_t<SquareCell*>*> vts = new_graph->GetAllVertex();
+			for(auto vt: vts){
+
+			    file_path << "Vertex " << vt->state_->id_ << ": "<<  "\n";
+			    file_path << "The probability p is " << vt->state_->p_ << "\n";
+			    file_path << "The IG is " << vt->state_->ig_ << "\n";
+
+			    file_path << "The neighbors are: " << "\n";
+			    std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
+			    for(auto nb: neighbs){
+			        auto ecost = vt->GetEdgeCost(nb);
+			        file_path << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost << "\n";
+			        file_path << "The probability p is " << vt->state_->p_ << "\n";
+			    	file_path << "The IG is " << vt->state_->ig_ << "\n";
+			    }
+			    file_path << "=============================================" << "\n";
+			    file_path << "=============================================" << "\n";
+			}   
+        	cnt++;
+        }
+
         std::cout << "Localmap Updated!" << std::endl;
         std_msgs::Bool iterationComplete_flag;
         iterationComplete_flag.data = true;
@@ -199,10 +247,10 @@ void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
 }
 
 void IpasDemo::updateSensorPos() {
-	for (auto agent : vehicle_team_->auto_team_) {
-		if (agent->vehicle_type_ == TaskType::MEASURE && !agent->task_path_.empty()) {
-			Task tsk = sensing_tasks_.GetTaskFromID(agent->task_path_.back());
-			agent->pos_ = tsk.pos_.front();
+	for (auto agentele : vehicle_team_->auto_team_) {
+		if (agentele->vehicle_type_ == TaskType::MEASURE && !agentele->task_path_.empty()) {
+			Task tsk = sensing_tasks_.GetTaskFromID(agentele->task_path_.back());
+			agentele->pos_ = tsk.pos_.front();
 		}
 	}
 }

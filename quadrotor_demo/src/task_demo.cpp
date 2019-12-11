@@ -104,14 +104,16 @@ int main() {
         //=============================================================//
         std::cout << "Convergence for task assignment is achieved." << std::endl;
         for(auto p: path_ltl_){
-            std::cout << "The path for vehicle " << p.first << " is: ";
-            file_path << "The path for vehicle " << p.first << " is: ";
-            for(auto v: p.second){
-                std::cout << v->id_ <<", ";
-                file_path << v->id_ <<", ";
+            if (p.first < 3) {
+                std::cout << "The path for vehicle " << p.first << " is: ";
+                file_path << "The path for vehicle " << p.first << " is: ";
+                for(auto v: p.second){
+                    std::cout << v->id_ <<", ";
+                    file_path << v->id_ <<", ";
+                }
+                std::cout << std::endl;
+                file_path << "\n";
             }
-            std::cout << std::endl;
-            file_path << "\n";
         }
         //=============================================================//
         //=============================================================//
@@ -128,16 +130,19 @@ int main() {
         CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
 
         std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,sensing_tasks_,TaskType::MEASURE);
-        std::cout << path_sensing_.size() << std::endl;
         for(auto p: path_sensing_){
-            std::cout << "The path for sensor " << p.first << " is: ";
-            file_path << "The path for sensor " << p.first << " is: ";
-            for(auto v: p.second){
-                std::cout << v->id_ <<", ";
-                file_path << v->id_ <<", ";
+            if (p.first >= 3) {
+                std::cout << "The path for sensor " << p.first << " is: ";
+                file_path << "The path for vehicle " << p.first << " is: ";
+                for(auto v: p.second){
+                    std::cout << v->id_ <<", ";
+                    file_path << v->id_ <<", ";
+              //       std::cout << "The (x, y) : (" << v->position_.x << ", " << v->position_.y << ")" <<", ";
+                    // std::cout << "The (row,col) : (" << v->coordinate_.x << ", "<< v->coordinate_.y << ")" <<". ";
+                }
+                std::cout << std::endl;
+                file_path << "\n";
             }
-            std::cout << std::endl;
-            file_path << "\n";
         }
 
         // Update initial position for sensors
@@ -149,6 +154,45 @@ int main() {
         }
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
+        // std::vector<Vertex_t<SquareCell*>*> vts = true_graph->GetAllVertex();
+        // for(auto vt: vts){
+
+        //     file_path << "Vertex " << vt->state_->id_ << ": "<<  "\n";
+        //     file_path << "The neighbors are: " << "\n";
+        //     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
+        //     for(auto nb: neighbs){
+        //         auto ecost = vt->GetEdgeCost(nb);
+        //         file_path << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost << "\n";
+        //     }
+        //     file_path << "=============================================" << "\n";
+        // } 
+        int cnt = 0;
+        file_path << "=============================================" << "\n";
+        file_path << "=============================================" << "\n";
+        for (auto element : vehicle_team_->auto_team_) {
+            file_path << "local graph " <<cnt << ": "<<  "\n";
+            std::shared_ptr<Graph_t<SquareCell*>> new_graph = element->local_graph_;
+            std::vector<Vertex_t<SquareCell*>*> vts = new_graph->GetAllVertex();
+            for(auto vt: vts){
+
+                file_path << "Vertex " << vt->state_->id_ << ": "<<  "\n";
+                file_path << "The probability p is " << vt->state_->p_ << "\n";
+                file_path << "The IG is " << vt->state_->ig_ << "\n";
+
+                file_path << "The neighbors are: " << "\n";
+                std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
+                for(auto nb: neighbs){
+                    auto ecost = vt->GetEdgeCost(nb);
+                    file_path << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost << "\n";
+                    file_path << "The probability p is " << vt->state_->p_ << "\n";
+                    file_path << "The IG is " << vt->state_->ig_ << "\n";
+                }
+                file_path << "=============================================" << "\n";
+                file_path << "=============================================" << "\n";
+            }   
+            cnt++;
+        }
+
         
     }
     file_path.close();

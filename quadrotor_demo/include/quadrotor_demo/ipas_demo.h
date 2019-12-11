@@ -82,6 +82,7 @@ private:
     bool updategraph_flag;
     std::unordered_set<int64_t> hotspots;
     std::unordered_map<int64_t, int64_t> index2Id;
+    std::unordered_set<int64_t> obstacles;
 
     std::shared_ptr<SquareGrid> uncertain_grid;
     std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph;
