@@ -303,8 +303,9 @@ void IpasDemo::sensorPath() {
     //===============================================================================================// 
     IPASMeasurement::ComputeHotSpots(vehicle_team_,tasks_);
     sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
-    hotspots.clear();
-    hotspots = sensing_tasks_.GetHotspots();
+    hotspots_.clear();
+    hotspots_ = sensing_tasks_.GetHotspots();
+    printHotspots(hotspots_);
     CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
 
     std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,sensing_tasks_,TaskType::MEASURE);
@@ -353,7 +354,7 @@ void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
 		        	pose_msg.xcoordinate = v->coordinate_.x;
 		        	pose_msg.ycoordinate = v->coordinate_.y;
 		        	path_msg.path.push_back(pose_msg);
-		        	if (hotspots.count(v->id_)) {
+		        	if (hotspots_.count(v->id_)) {
 		        		cnt++;
 		        		pathes_msg.pathes_data.push_back(path_msg);
 		        		if (v->id_ != p.second.back()->id_) {
@@ -407,6 +408,38 @@ void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) 
 		        cube_marker_array.markers.push_back(cube_marker);
     		}
     	}
+    }
+    marker_pub_.publish(cube_marker_array);
+}
+
+
+void IpasDemo::printHotspots(std::unordered_set<int64_t>& hotspots) {
+	visualization_msgs::MarkerArray cube_marker_array;
+
+    visualization_msgs::Marker cube_marker;
+    cube_marker.type = visualization_msgs::Marker::CUBE_LIST;
+    cube_marker.action = visualization_msgs::Marker::ADD;
+    cube_marker.ns = "cubes";
+    cube_marker.scale.x = 1;
+    cube_marker.scale.y = 1;
+    cube_marker.scale.z = 0.1;
+    cube_marker.header.frame_id = "/world";
+    cube_marker.color.a = 1.0; 
+    cube_marker.color.r = 1.0;
+    cube_marker.id = 0;
+    ros::Duration lifetime;
+    cube_marker.lifetime = lifetime.fromSec(1); // lifetime of 40ms : 25Hz
+
+	for(auto itr = hotspots.begin(); itr != hotspots.end(); itr++){
+			geometry_msgs::Point obj;
+	        obj.x = *itr % num_col_;
+	        obj.y = *itr / num_row_;
+	        // std::cout << "pos: " << obj.x << " " << obj.y << std::endl;
+	        obj.z = 0.1;
+	        cube_marker.points.push_back(obj);
+	        cube_marker.colors.push_back(cube_marker.color);
+	        cube_marker.header.stamp = ros::Time::now();
+	        cube_marker_array.markers.push_back(cube_marker);
     }
     marker_pub_.publish(cube_marker_array);
 }

@@ -80,7 +80,7 @@ private:
     int64_t ipas_tt;
     bool updatemap_flag;
     bool updategraph_flag;
-    std::unordered_set<int64_t> hotspots;
+    std::unordered_set<int64_t> hotspots_;
     std::unordered_map<int64_t, int64_t> index2Id;
     std::unordered_set<int64_t> obstacles;
 
@@ -105,6 +105,7 @@ public:
     void sensorPath();
     void updateSensorPos(); 
     void printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath);
+    void printHotspots(std::unordered_set<int64_t>& hotspots);
     void updateLocalmap(const quadrotor_demo::localmap& localmap);
     void pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes);
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
