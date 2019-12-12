@@ -92,7 +92,7 @@ private:
     std::shared_ptr<SquareGrid> true_grid;
     std::shared_ptr<Graph_t<SquareCell *>> true_graph;
 
-	std::ofstream file_path;
+	// std::ofstream file_path;
 
 public:
 	// IpasDemo(ros::NodeHandle* nodehandle);
