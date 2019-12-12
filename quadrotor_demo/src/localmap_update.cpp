@@ -69,6 +69,7 @@ void LocalMapUpdate::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
         ros::Rate loop_rate(10);
         loop_rate.sleep();
     	filter(colorImg);
+        loop_rate.sleep();
     }
 }
 
