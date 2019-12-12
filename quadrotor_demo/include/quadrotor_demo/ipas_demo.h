@@ -51,6 +51,7 @@ private:
     ros::Publisher iteration_complete_pub_;
     ros::Publisher marker_pub_;
     ros::Publisher markerarray_pub_;
+    ros::Publisher obsarray_pub_;
     ros::Subscriber currentpos1_sub_;
     ros::Subscriber currentpos2_sub_;
     ros::Subscriber currentpos3_sub_;

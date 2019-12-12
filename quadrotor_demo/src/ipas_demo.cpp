@@ -67,6 +67,8 @@ void IpasDemo::initPub() {
     iteration_complete_pub_ = nh_.advertise<std_msgs::Bool>("/updatemap_flag", 1, true); 
     marker_pub_ = nh_.advertise<visualization_msgs::Marker>("/visualization_marker", 10);
     markerarray_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/visualization_markerarray", 10);
+    obsarray_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/visualization_markerarray1", 10);
+    
 
     // control1input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone1/cmd_vel", 1, true); 
     // control2input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone2/cmd_vel", 1, true);
@@ -153,6 +155,7 @@ void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
 void IpasDemo::updatemapflagCallback(const std_msgs::Bool& flag_msg) {
     updatemap_flag = flag_msg.data;
     printAxis();
+    printObstacle();
     if (updatemap_flag == true) {
     	mobilePath();
     }
@@ -428,9 +431,9 @@ void IpasDemo::printObstacle() {
     obstacle_marker.ns = "obstcle";
     obstacle_marker.scale.x = 1;
     obstacle_marker.scale.y = 1;
-    obstacle_marker.scale.z = 0.1;
+    obstacle_marker.scale.z = 1;
     obstacle_marker.header.frame_id = "/world";
-    obstacle_marker.color.a = 0.0; 
+    obstacle_marker.color.a = 1.0; 
     obstacle_marker.color.g = 0.0;
     obstacle_marker.color.b = 1.0;
     obstacle_marker.color.r = 0.0;
@@ -450,7 +453,7 @@ void IpasDemo::printObstacle() {
 	        obstacle_marker_array.markers.push_back(obstacle_marker);
 	    }
     }
-    markerarray_pub_.publish(obstacle_marker_array);
+    obsarray_pub_.publish(obstacle_marker_array);
 }
 
 void IpasDemo::printAxis() {
@@ -682,27 +685,30 @@ int main(int argc, char** argv) {
     // Define the task information:
     // Index of task, AP value(ltl), Position, Task Type, Number of vehicle
     std::vector<Task> tasks_data = {Task(0,2,{67},TaskType::RESCUE,num_vehicle),
-                                	Task(1,3,{76},TaskType::RESCUE,num_vehicle),
-                                	Task(2,4,{139},TaskType::RESCUE,num_vehicle),
-                                	Task(3,5,{190},TaskType::RESCUE,num_vehicle),
-                                	Task(4,6,{130},TaskType::RESCUE,num_vehicle),
-                                	Task(5,7,{150},TaskType::RESCUE,num_vehicle)};
+                                	Task(1,3,{102},TaskType::RESCUE,num_vehicle),
+                                	Task(2,4,{120},TaskType::RESCUE,num_vehicle),
+                                	Task(3,5,{149},TaskType::RESCUE,num_vehicle),
+                                	Task(4,6,{169},TaskType::RESCUE,num_vehicle),
+                                	Task(5,7,{191},TaskType::RESCUE,num_vehicle)};
     // Auto Vehicle Team
     // Index of drone, Initial position, # of drones, Communicate network, Task Type, # of tasks
     Eigen::MatrixXi comm = Eigen::MatrixXi::Ones(1,num_vehicle);
     int64_t num_sensors = 3;
     std::vector<AutoVehicle> agents = { AutoVehicle(0,0,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
                                     	AutoVehicle(1,210,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    	AutoVehicle(2,224,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    	AutoVehicle(2,14,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
                                     	AutoVehicle(3,0,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
                                     	AutoVehicle(4,210,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
-                                    	AutoVehicle(5,224,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors) };
+                                    	AutoVehicle(5,14,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors) };
 
     int64_t num_row = 15;
     int64_t num_col = 15;
 
     // obstacles range for visulization
-    std::vector<std::vector<int64_t>> range_idx = {{30,36}, {154,160}};
+    std::vector<std::vector<int64_t>> range_idx = {{6,9}, {20,24}, {35,39}, {76,79}, {90,94}, 
+													{100,101}, {104,105}, {115,120}, {130,135}, 
+													{150,153}, {165,170}, {180,185}, {193,195},
+													{206,210}, {220,225}};
 
     IpasDemo ipasdemo(&nh, tasks_data, agents, comm, num_vehicle, num_tasks, num_sensors, num_row, num_col, range_idx);
     	
