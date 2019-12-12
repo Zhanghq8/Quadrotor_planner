@@ -11,7 +11,7 @@ IpasDemo::IpasDemo(ros::NodeHandle* nodehandle, std::vector<Task>& tasks_data, s
 	init();
     initSub();
     initPub();
-    file_path.open("/home/han/quadrotordemo_ws/src/ipas.txt",std::ios::trunc);
+    // file_path.open("/home/han/quadrotordemo_ws/src/ipas.txt",std::ios::trunc);
 }
 
 IpasDemo::~IpasDemo() {
@@ -30,24 +30,6 @@ void IpasDemo::initMap() {
     //===============================================================================================//   
     // Initialize local_grid and local_graph
     IPASMeasurement::InitLocalGraph(vehicle_team_,uncertain_grid);  
-
-    // //======================================== TEST ===============================================//
-    // std::vector<Vertex_t<SquareCell*>*> vts = true_graph->GetAllVertex();
-    // for(auto vt: vts){
-    //     std::cout << "Vertex " << vt->state_->id_ << ": "<< std::endl;
-    //     std::cout << "The (x, y) : (" << vt->state_->position_.x << ", " << vt->state_->position_.y << ")" <<std::endl;
-    //     std::cout << "The (row,col) : (" << vt->state_->coordinate_.x << ", "<< vt->state_->coordinate_.y << ")" <<std::endl; 
-    //     std::cout << "The probability p is " << vt->state_->p_ << ", and IG is " << vt->state_->ig_ <<std::endl;
-    //     std::cout << "The neighbors are: " <<std::endl;
-    //     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
-    //     for(auto nb: neighbs){
-    //         auto ecost = vt->GetEdgeCost(nb);
-    //         std::cout << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost <<std::endl;
-    //     }
-    //     std::cout << "=============================================" <<std::endl;
-    // }   
-
-
 
 }
 
@@ -154,9 +136,9 @@ void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
 			if ((id+1) % num_col_ == 0 && neighborId == id + 1) {
 				continue;
 			}
-			std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
-			std::cout << "id: " << itr->id << " neighborid: " << neighborId << std::endl; 
-			std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
+			// std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
+			// std::cout << "id: " << itr->id << " neighborid: " << neighborId << std::endl; 
+			// std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
 			obstacles.insert(neighborId);
 		}
 	}
@@ -179,64 +161,39 @@ void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
     updategraph_flag = graphFlag_msg.data;
     if (updategraph_flag == true) {
     	true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
-    	   // //======================================== TEST ===============================================//
-    // std::vector<Vertex_t<SquareCell*>*> vts = true_graph->GetAllVertex();
-    // for(auto vt: vts){
-    //     std::cout << "Vertex " << vt->state_->id_ << ": "<< std::endl;
-    //     std::cout << "The (x, y) : (" << vt->state_->position_.x << ", " << vt->state_->position_.y << ")" <<std::endl;
-    //     std::cout << "The (row,col) : (" << vt->state_->coordinate_.x << ", "<< vt->state_->coordinate_.y << ")" <<std::endl; 
-    //     std::cout << "The probability p is " << vt->state_->p_ << ", and IG is " << vt->state_->ig_ <<std::endl;
-    //     std::cout << "The neighbors are: " <<std::endl;
-    //     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
-    //     for(auto nb: neighbs){
-    //         auto ecost = vt->GetEdgeCost(nb);
-    //         std::cout << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost <<std::endl;
-    //     }
-    //     std::cout << "=============================================" <<std::endl;
-    // }   
-  //   	std::vector<Vertex_t<SquareCell*>*> vts = true_graph->GetAllVertex();
-		// for(auto vt: vts){
-
-		//     file_path << "Vertex " << vt->state_->id_ << ": "<<  "\n";
-		//     file_path << "The neighbors are: " << "\n";
-		//     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
-		//     for(auto nb: neighbs){
-		//         auto ecost = vt->GetEdgeCost(nb);
-		//         file_path << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost << "\n";
-		//     }
-		//     file_path << "=============================================" << "\n";
-		// }   
 
     	// update sensor pose
     	updateSensorPos();
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
-        int cnt = 0;
-        file_path << "=============================================" << "\n";
-        file_path << "=============================================" << "\n";
-        for (auto element : vehicle_team_->auto_team_) {
-        	file_path << "local graph " <<cnt << ": "<<  "\n";
-        	std::shared_ptr<Graph_t<SquareCell*>> new_graph = element->local_graph_;
-	    	std::vector<Vertex_t<SquareCell*>*> vts = new_graph->GetAllVertex();
-			for(auto vt: vts){
 
-			    file_path << "Vertex " << vt->state_->id_ << ": "<<  "\n";
-			    file_path << "The probability p is " << vt->state_->p_ << "\n";
-			    file_path << "The IG is " << vt->state_->ig_ << "\n";
 
-			    file_path << "The neighbors are: " << "\n";
-			    std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
-			    for(auto nb: neighbs){
-			        auto ecost = vt->GetEdgeCost(nb);
-			        file_path << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost << "\n";
-			        file_path << "The probability p is " << vt->state_->p_ << "\n";
-			    	file_path << "The IG is " << vt->state_->ig_ << "\n";
-			    }
-			    file_path << "=============================================" << "\n";
-			    file_path << "=============================================" << "\n";
-			}   
-        	cnt++;
-        }
+   //      int cnt = 0;
+   //      file_path << "=============================================" << "\n";
+   //      file_path << "=============================================" << "\n";
+   //      for (auto element : vehicle_team_->auto_team_) {
+   //      	file_path << "local graph " <<cnt << ": "<<  "\n";
+   //      	std::shared_ptr<Graph_t<SquareCell*>> new_graph = element->local_graph_;
+	  //   	std::vector<Vertex_t<SquareCell*>*> vts = new_graph->GetAllVertex();
+			// for(auto vt: vts){
+
+			//     file_path << "Vertex " << vt->state_->id_ << ": "<<  "\n";
+			//     file_path << "The probability p is " << vt->state_->p_ << "\n";
+			//     file_path << "The IG is " << vt->state_->ig_ << "\n";
+
+			//     file_path << "The neighbors are: " << "\n";
+			//     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
+			//     for(auto nb: neighbs){
+			//         auto ecost = vt->GetEdgeCost(nb);
+			//         file_path << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost << "\n";
+			//         file_path << "The probability p is " << vt->state_->p_ << "\n";
+			//     	file_path << "The IG is " << vt->state_->ig_ << "\n";
+			//     }
+			//     file_path << "=============================================" << "\n";
+			//     file_path << "=============================================" << "\n";
+			// }   
+   //      	cnt++;
+   //      }
 
         std::cout << "Localmap Updated!" << std::endl;
         std_msgs::Bool iterationComplete_flag;
@@ -264,7 +221,7 @@ void IpasDemo::mobilePath() {
 	std::cout << "======================================" << std::endl;
 	std::cout << "======================================" << std::endl;
 	std::cout << "Iteration: " << ipas_tt << std::endl;
-	file_path << "Iteration: " << ipas_tt << "\n";
+	// file_path << "Iteration: " << ipas_tt << "\n";
     // Implement the CBBA to determine the task assignment
     CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
     // Compute the path for the auto team while satisfying its local assignment
@@ -275,13 +232,13 @@ void IpasDemo::mobilePath() {
     for(auto p: path_ltl_){
     	if (p.first < 3) {
 	        std::cout << "The path for vehicle " << p.first << " is: ";
-	        file_path << "The path for vehicle " << p.first << " is: ";
+	        // file_path << "The path for vehicle " << p.first << " is: ";
 	        for(auto v: p.second){
 	            std::cout << v->id_ <<", ";
-	            file_path << v->id_ <<", ";
+	            // file_path << v->id_ <<", ";
 	        }
 	        std::cout << std::endl;
-	        file_path << "\n";
+	        // file_path << "\n";
     	}
     }
     //=============================================================//
@@ -316,15 +273,13 @@ void IpasDemo::sensorPath() {
     for(auto p: path_sensing_){
     	if (p.first >= 3) {
 	        std::cout << "The path for sensor " << p.first << " is: ";
-	        file_path << "The path for vehicle " << p.first << " is: ";
+	        // file_path << "The path for vehicle " << p.first << " is: ";
 	        for(auto v: p.second){
 	            std::cout << v->id_ <<", ";
-	            file_path << v->id_ <<", ";
-          //       std::cout << "The (x, y) : (" << v->position_.x << ", " << v->position_.y << ")" <<", ";
-        		// std::cout << "The (row,col) : (" << v->coordinate_.x << ", "<< v->coordinate_.y << ")" <<". ";
+	            // file_path << v->id_ <<", ";
 	        }
 	        std::cout << std::endl;
-	        file_path << "\n";
+	        // file_path << "\n";
     	}
     }
     pathesPub(path_sensing_);
@@ -395,7 +350,7 @@ void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) 
     cube_marker.ns = "cubes";
     cube_marker.scale.x = 1;
     cube_marker.scale.y = 1;
-    cube_marker.scale.z = 0.1;
+    cube_marker.scale.z = 0.1;	
     cube_marker.header.frame_id = "/world";
     cube_marker.color.a = 1.0; 
     cube_marker.color.g = 1.0;
