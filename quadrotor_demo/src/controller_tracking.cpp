@@ -18,7 +18,7 @@ void Controller_tracking::initVec() {
     goalposvector = vector<vector<double>> (drone_num, vector<double> (7, 0));
     goalposvector[0] = {0.5,0.5,0,0,0,0,1};
     goalposvector[1] = {0.5,14.5,0,0,0,0,1};
-    goalposvector[2] = {14.5,14.5,0,0,0,0,1};
+    goalposvector[2] = {14.5,0.5,0,0,0,0,1};
     waypoint_cnt = vector<int> (drone_num, 0);
     diffvector = vector<vector<double>> (drone_num, vector<double> (3, 0));
     xyvelocity = vector<vector<double>> (drone_num, vector<double> (3, 0));

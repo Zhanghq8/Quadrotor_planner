@@ -155,7 +155,6 @@ void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
 void IpasDemo::updatemapflagCallback(const std_msgs::Bool& flag_msg) {
     updatemap_flag = flag_msg.data;
     printAxis();
-    printObstacle();
     if (updatemap_flag == true) {
     	mobilePath();
     }
