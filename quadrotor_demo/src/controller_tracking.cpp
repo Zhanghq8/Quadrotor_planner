@@ -338,7 +338,11 @@ void Controller_tracking::event2Callback(const geometry_msgs::PoseStamped& odom2
 }
 
 void Controller_tracking::event3Callback(const geometry_msgs::PoseStamped& odom3) {
+    // std::cout << "event3: " << switchFlag0 << " " << switchFlag1 << " " << switchFlag2 << " " << start_flag << std::endl;
+    //     std::cout << "flag: " << updateComplete[0] << " " << updateComplete[1] << " " << updateComplete[2] << std::endl;
     if (switchFlag0 && switchFlag1 && !switchFlag2 && start_flag && (updateComplete[0] && updateComplete[1] && updateComplete[2])) {
+        // std::cout << "after: " << switchFlag0 << " " << switchFlag1 << " " << switchFlag2 << " " << start_flag << std::endl;
+        // std::cout << "?: " << updateComplete[0] << " " << updateComplete[1] << " " << updateComplete[2] << std::endl;
         for (int i=0; i<drone_num; i++) {
         // check if the there is task for dronei
             if (!sensorPath[i].empty()) {
@@ -374,27 +378,28 @@ void Controller_tracking::event3Callback(const geometry_msgs::PoseStamped& odom3
             } else {
                 switchFlag23[i] = true;
             }
-            switchFlag2 = switchFlag23[0] && switchFlag23[1] && switchFlag23[2];
 
-            if (switchFlag2) {
-                updateMap();
-                ros::Rate loop_rate(5);
-                loop_rate.sleep();
-                if (updateComplete[0] && updateComplete[1] && updateComplete[2] && switchFlag2) {
-                    std_msgs::Bool flag;
-                    flag.data = switchFlag2;
-                    updategraph_flag_pub_.publish(flag);
-                }
-                start_flag = false;
-                switchFlag0 = false;
-                switchFlag1 = false;
-                switchFlag2 = false;
-                switchFlag01 = vector<bool> (3, false);
-                switchFlag12 = vector<bool> (3, false);
-                switchFlag23 = vector<bool> (3, false);
-                updateMapFlag = vector<bool> (3, false);
-                updateComplete = vector<bool> (3, false);
+        }
+        switchFlag2 = switchFlag23[0] && switchFlag23[1] && switchFlag23[2];
+
+        if (switchFlag2) {
+            updateMap();
+            ros::Rate loop_rate(5);
+            loop_rate.sleep();
+            if (updateComplete[0] && updateComplete[1] && updateComplete[2] && switchFlag2) {
+                std_msgs::Bool flag;
+                flag.data = switchFlag2;
+                updategraph_flag_pub_.publish(flag);
             }
+            start_flag = false;
+            switchFlag0 = false;
+            switchFlag1 = false;
+            switchFlag2 = false;
+            switchFlag01 = vector<bool> (3, false);
+            switchFlag12 = vector<bool> (3, false);
+            switchFlag23 = vector<bool> (3, false);
+            updateMapFlag = vector<bool> (3, false);
+            updateComplete = vector<bool> (3, false);
         }
     }
 }
