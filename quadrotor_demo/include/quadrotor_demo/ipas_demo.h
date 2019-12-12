@@ -29,6 +29,7 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <visualization_msgs/Marker.h> 
 #include <visualization_msgs/MarkerArray.h>  
 #include <std_msgs/Bool.h>
 #include "quadrotor_demo/pose.h"
@@ -49,6 +50,7 @@ private:
     ros::Publisher task_pub_;
     ros::Publisher iteration_complete_pub_;
     ros::Publisher marker_pub_;
+    ros::Publisher markerarray_pub_;
     ros::Subscriber currentpos1_sub_;
     ros::Subscriber currentpos2_sub_;
     ros::Subscriber currentpos3_sub_;
@@ -106,6 +108,7 @@ public:
     void updateSensorPos(); 
     void printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath);
     void printHotspots(std::unordered_set<int64_t>& hotspots);
+    void printAxis();
     void updateLocalmap(const quadrotor_demo::localmap& localmap);
     void pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes);
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);

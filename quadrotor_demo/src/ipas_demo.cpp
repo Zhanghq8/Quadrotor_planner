@@ -81,7 +81,9 @@ void IpasDemo::initPub() {
     // ROS_INFO("Initializing Publishers");
     task_pub_ = nh_.advertise<quadrotor_demo::final_path>("/sensor_path", 1, true); 
     iteration_complete_pub_ = nh_.advertise<std_msgs::Bool>("/updatemap_flag", 1, true); 
-    marker_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/visualization_markerarray", 10);
+    marker_pub_ = nh_.advertise<visualization_msgs::Marker>("/visualization_marker", 10);
+    markerarray_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/visualization_markerarray", 10);
+
     // control1input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone1/cmd_vel", 1, true); 
     // control2input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone2/cmd_vel", 1, true);
     // control3input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone3/cmd_vel", 1, true);
@@ -166,6 +168,7 @@ void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
 
 void IpasDemo::updatemapflagCallback(const std_msgs::Bool& flag_msg) {
     updatemap_flag = flag_msg.data;
+    printAxis();
     if (updatemap_flag == true) {
     	mobilePath();
     }
@@ -388,7 +391,7 @@ void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) 
     cube_marker.scale.z = 0.1;
     cube_marker.header.frame_id = "/world";
     cube_marker.color.a = 1.0; 
-    cube_marker.color.r = 1.0;
+    cube_marker.color.g = 1.0;
     cube_marker.id = 0;
     cube_marker.lifetime = ros::Duration();
     // ros::Duration lifetime;
@@ -409,7 +412,7 @@ void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) 
     		}
     	}
     }
-    marker_pub_.publish(cube_marker_array);
+    markerarray_pub_.publish(cube_marker_array);
 }
 
 
@@ -441,7 +444,117 @@ void IpasDemo::printHotspots(std::unordered_set<int64_t>& hotspots) {
 	        cube_marker.header.stamp = ros::Time::now();
 	        cube_marker_array.markers.push_back(cube_marker);
     }
-    marker_pub_.publish(cube_marker_array);
+    markerarray_pub_.publish(cube_marker_array);
+}
+
+void IpasDemo::printAxis() {
+	// x axis
+	visualization_msgs::Marker arrow_marker_x;
+	arrow_marker_x.type = visualization_msgs::Marker::ARROW;
+	arrow_marker_x.action = visualization_msgs::Marker::ADD;	
+	arrow_marker_x.ns = "axis";
+	arrow_marker_x.scale.x=0.1;
+	arrow_marker_x.scale.y=0.2;
+	arrow_marker_x.scale.z = 0.5;
+	arrow_marker_x.header.frame_id = "/world";
+	arrow_marker_x.color.a = 1.0;
+	arrow_marker_x.color.r = 1.0;
+	arrow_marker_x.id = 1;
+	arrow_marker_x.lifetime = ros::Duration();
+
+	geometry_msgs::Point startPoint1;
+    startPoint1.x = -1;
+    startPoint1.y = -1;
+    startPoint1.z = 0.1;
+    arrow_marker_x.points.push_back(startPoint1);
+    arrow_marker_x.colors.push_back(arrow_marker_x.color);
+    geometry_msgs::Point endPoint1;
+    endPoint1.x = 1;
+    endPoint1.y = -1;
+    endPoint1.z = 0.1;
+    arrow_marker_x.points.push_back(endPoint1);
+    arrow_marker_x.colors.push_back(arrow_marker_x.color);
+    arrow_marker_x.header.stamp = ros::Time::now(); 
+    marker_pub_.publish(arrow_marker_x);
+    // y axis
+	visualization_msgs::Marker arrow_marker_y;
+	arrow_marker_y.type = visualization_msgs::Marker::ARROW;
+	arrow_marker_y.action = visualization_msgs::Marker::ADD;	
+	arrow_marker_y.ns = "axis";
+	arrow_marker_y.scale.x=0.15;
+	arrow_marker_y.scale.y=0.3;
+	arrow_marker_y.scale.z = 0.5;
+	arrow_marker_y.header.frame_id = "/world";
+	arrow_marker_y.color.a = 1.0;
+	arrow_marker_y.color.g = 1.0;
+	arrow_marker_y.id = 2;
+	arrow_marker_y.lifetime = ros::Duration();
+    geometry_msgs::Point startPoint2;
+    startPoint2.x = -1;
+    startPoint2.y = -1;
+    startPoint2.z = 0.1;
+    arrow_marker_y.points.push_back(startPoint2);
+    arrow_marker_y.colors.push_back(arrow_marker_y.color);
+    geometry_msgs::Point endPoint2;
+    endPoint2.x = -1;
+    endPoint2.y = 1;
+    endPoint2.z = 0.1;
+    arrow_marker_y.points.push_back(endPoint2);
+    arrow_marker_y.colors.push_back(arrow_marker_y.color);
+
+	arrow_marker_y.header.stamp = ros::Time::now(); 
+    marker_pub_.publish(arrow_marker_y);
+
+    // x text
+    visualization_msgs::Marker textx_marker;
+	textx_marker.header.frame_id = "/world";
+	textx_marker.header.stamp = ros::Time::now();
+	textx_marker.ns = "text";
+	textx_marker.id = 3;
+	textx_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	textx_marker.action = visualization_msgs::Marker::ADD;
+
+	textx_marker.pose.position.x = 0.0;
+	textx_marker.pose.position.y = -2.0;
+	textx_marker.pose.position.z = 0.1;
+	textx_marker.pose.orientation.x = 0.0;
+	textx_marker.pose.orientation.y = 0.0;
+	textx_marker.pose.orientation.z = 0.0;
+	textx_marker.pose.orientation.w = 1.0;
+
+	textx_marker.text = "X axis";
+
+	textx_marker.scale.z = 0.5;
+
+	textx_marker.color.r = 1.0;
+	textx_marker.color.a = 1.0;
+	marker_pub_.publish(textx_marker);
+
+    // y text
+    visualization_msgs::Marker texty_marker;
+	texty_marker.header.frame_id = "/world";
+	texty_marker.header.stamp = ros::Time::now();
+	texty_marker.ns = "text";
+	texty_marker.id = 4;
+	texty_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	texty_marker.action = visualization_msgs::Marker::ADD;
+
+	texty_marker.pose.position.x = -2.0;
+	texty_marker.pose.position.y = 0.0;
+	texty_marker.pose.position.z = 0.1;
+	texty_marker.pose.orientation.x = 0.0;
+	texty_marker.pose.orientation.y = 0.0;
+	texty_marker.pose.orientation.z = 0.0;
+	texty_marker.pose.orientation.w = 1.0;
+
+	texty_marker.text = "Y axis";
+
+	texty_marker.scale.z = 0.5;
+
+	texty_marker.color.g = 1.0;
+	texty_marker.color.a = 1.0;
+	marker_pub_.publish(texty_marker);
+
 }
 
 int main(int argc, char** argv) {

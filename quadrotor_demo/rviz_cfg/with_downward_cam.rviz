@@ -4,7 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Grid1
+        - /Marker1
         - /RobotModel1/Links1
         - /MarkerArray1
       Splitter Ratio: 0.760806918
@@ -53,7 +53,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: visualization_marker
+      Marker Topic: /visualization_marker
       Name: Marker
       Namespaces:
         {}
@@ -373,25 +373,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 56.1252937
+      Distance: 46.6062431
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -6.15231848
-        Y: 1.41238534
-        Z: 3.50344849
+        X: -5.80115271
+        Y: -5.19360638
+        Z: 4.64512157
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.65979743
+      Pitch: 0.929797173
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.06041384
+      Yaw: 4.69541597
     Saved: ~
 Window Geometry:
   Camera:
