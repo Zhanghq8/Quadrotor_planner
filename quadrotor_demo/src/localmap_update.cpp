@@ -198,7 +198,9 @@ void LocalMapUpdate::filter(const Mat& color_img) {
     ucf.data = updateCompleteFlag;
     update_complete_pub_.publish(ucf);
     updateFlag = false;
-
+    std::cout << "===================================================" << std::endl;
+    std::cout << "Measurement for sensor " << topic[6] << " finished." << std::endl;
+    std::cout << "===================================================" << std::endl;
     // ThresholdedImg = Imgcopy;
 
     // // threshold for canny
