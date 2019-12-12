@@ -35,6 +35,7 @@ private:
     double kp;
     double kd;
     double ki;
+    int cnt = 0;
 
     // error dynamics, accumulated error, previous error
     //e_k, e_P, e_I, e_D, E_k, e_k_previous

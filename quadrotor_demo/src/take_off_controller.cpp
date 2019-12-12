@@ -188,8 +188,14 @@ void Takeoff_Controller::currentpos3Callback(const geometry_msgs::PoseStamped& o
 }
 
 void Takeoff_Controller::eventCallback(const geometry_msgs::Twist& vel) {
+    if (flag1 == true && flag2 == true && flag3 == true) {
+        cnt++;
+        if (cnt == 1) {
+            ROS_INFO("Taking off finished...");
+        }
+    }
     if ((vel.linear.x != 0 || vel.linear.y != 0) && (flag1 == true && flag2 == true && flag3 == true)) {
-        ROS_INFO("Taking off shutdown...");
+        ROS_INFO("Taking off node shutdown...");
         ros::shutdown();
     }
 }
