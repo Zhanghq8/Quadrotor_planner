@@ -61,6 +61,7 @@ void IpasDemo::init() {
 				{6,-num_col_-1}, {7,-num_col_}, {8,-num_col_+1}};
 	tasks_ = TasksSet(tasks_data_);
 	vehicle_team_ = IPASMeasurement::ConstructAutoTeam(agents_);
+	getTaskId();
 	initMap();
 }
 
@@ -378,6 +379,12 @@ void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
     task_pub_.publish(finalpath_msg);
 }
 
+void IpasDemo::getTaskId() {
+	for (auto tks : tasks_data_) {
+		task_id_.insert(tks.pos_[0]);
+	}
+}
+
 void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) {
 
 	visualization_msgs::MarkerArray cube_marker_array;
@@ -406,6 +413,14 @@ void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) 
 		        // std::cout << "pos: " << obj.x << " " << obj.y << std::endl;
 		        obj.z = 0.1;
 		        cube_marker.points.push_back(obj);
+		        if (task_id_.count(v->id_)) {
+		        	cube_marker.color.g = 0.0;
+		        	cube_marker.color.r = 1.0;
+
+		        } else {
+		        	cube_marker.color.g = 1.0;
+		        	cube_marker.color.r = 0.0;
+		        }
 		        cube_marker.colors.push_back(cube_marker.color);
 		        cube_marker.header.stamp = ros::Time::now();
 		        cube_marker_array.markers.push_back(cube_marker);
