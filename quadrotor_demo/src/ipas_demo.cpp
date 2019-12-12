@@ -2,9 +2,10 @@
 
 IpasDemo::IpasDemo(ros::NodeHandle* nodehandle, std::vector<Task>& tasks_data, std::vector<AutoVehicle>& agent, 
 		Eigen::MatrixXi& comm, int64_t num_vehicle, int64_t num_tasks, int64_t num_sensors, int64_t num_row, 
-			int64_t num_col) 
+			int64_t num_col, std::vector<std::vector<int64_t>> range_idx) 
 			: nh_(*nodehandle), tasks_data_(tasks_data), agents_(agent), comm_(comm), num_vehicle_(num_vehicle), 
-			num_tasks_(num_tasks), num_sensors_(num_sensors), num_row_(num_row), num_col_(num_col) { 
+			num_tasks_(num_tasks), num_sensors_(num_sensors), num_row_(num_row), num_col_(num_col), range_idx_
+			(range_idx) { 
 	// constructor
  	// ROS_INFO("In class constructor of IpasDemo");
 	assert(num_sensors_ == 3 && "The number of sensors in this demo must be strictly equal to 3!");
@@ -249,8 +250,9 @@ void IpasDemo::mobilePath() {
     bool flag_IPAS = IPASMeasurement::IPASConvergence(vehicle_team_,path_ltl_);
     if (flag_IPAS == true) {
     	std::cout << "The required iteration is " << ipas_tt <<std::endl; 
+    	printObstacle();
     	printValidPath(path_ltl_);
-    	file_path.close();
+    	// file_path.close();
         ROS_INFO("Finished...");
         ros::shutdown();
     } else {
@@ -342,20 +344,20 @@ void IpasDemo::getTaskId() {
 
 void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) {
 
-	visualization_msgs::MarkerArray cube_marker_array;
+	visualization_msgs::MarkerArray path_marker_array;
 
-    visualization_msgs::Marker cube_marker;
-    cube_marker.type = visualization_msgs::Marker::CUBE_LIST;
-    cube_marker.action = visualization_msgs::Marker::ADD;
-    cube_marker.ns = "cubes";
-    cube_marker.scale.x = 1;
-    cube_marker.scale.y = 1;
-    cube_marker.scale.z = 0.1;	
-    cube_marker.header.frame_id = "/world";
-    cube_marker.color.a = 1.0; 
-    cube_marker.color.g = 1.0;
-    cube_marker.id = 0;
-    cube_marker.lifetime = ros::Duration();
+    visualization_msgs::Marker path_marker;
+    path_marker.type = visualization_msgs::Marker::CUBE_LIST;
+    path_marker.action = visualization_msgs::Marker::ADD;
+    path_marker.ns = "paths";
+    path_marker.scale.x = 1;
+    path_marker.scale.y = 1;
+    path_marker.scale.z = 0.1;	
+    path_marker.header.frame_id = "/world";
+    path_marker.color.a = 1.0; 
+    path_marker.color.g = 1.0;
+    path_marker.id = 0;
+    path_marker.lifetime = ros::Duration();
     // ros::Duration lifetime;
     // arrow_marker.lifetime = lifetime.fromSec(0.04); // lifetime of 40ms : 25Hz
 
@@ -367,41 +369,41 @@ void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) 
 		        obj.y = v->position_.y;
 		        // std::cout << "pos: " << obj.x << " " << obj.y << std::endl;
 		        obj.z = 0.1;
-		        cube_marker.points.push_back(obj);
+		        path_marker.points.push_back(obj);
 		        if (task_id_.count(v->id_)) {
-		        	cube_marker.color.g = 0.0;
-		        	cube_marker.color.r = 1.0;
+		        	path_marker.color.g = 0.0;
+		        	path_marker.color.r = 1.0;
 
 		        } else {
-		        	cube_marker.color.g = 1.0;
-		        	cube_marker.color.r = 0.0;
+		        	path_marker.color.g = 1.0;
+		        	path_marker.color.r = 0.0;
 		        }
-		        cube_marker.colors.push_back(cube_marker.color);
-		        cube_marker.header.stamp = ros::Time::now();
-		        cube_marker_array.markers.push_back(cube_marker);
+		        path_marker.colors.push_back(path_marker.color);
+		        path_marker.header.stamp = ros::Time::now();
+		        path_marker_array.markers.push_back(path_marker);
     		}
     	}
     }
-    markerarray_pub_.publish(cube_marker_array);
+    markerarray_pub_.publish(path_marker_array);
 }
 
 
 void IpasDemo::printHotspots(std::unordered_set<int64_t>& hotspots) {
-	visualization_msgs::MarkerArray cube_marker_array;
+	visualization_msgs::MarkerArray hotspot_marker_array;
 
-    visualization_msgs::Marker cube_marker;
-    cube_marker.type = visualization_msgs::Marker::CUBE_LIST;
-    cube_marker.action = visualization_msgs::Marker::ADD;
-    cube_marker.ns = "cubes";
-    cube_marker.scale.x = 1;
-    cube_marker.scale.y = 1;
-    cube_marker.scale.z = 0.1;
-    cube_marker.header.frame_id = "/world";
-    cube_marker.color.a = 1.0; 
-    cube_marker.color.r = 1.0;
-    cube_marker.id = 0;
+    visualization_msgs::Marker hotspot_marker;
+    hotspot_marker.type = visualization_msgs::Marker::CUBE_LIST;
+    hotspot_marker.action = visualization_msgs::Marker::ADD;
+    hotspot_marker.ns = "hotspots";
+    hotspot_marker.scale.x = 1;
+    hotspot_marker.scale.y = 1;
+    hotspot_marker.scale.z = 0.1;
+    hotspot_marker.header.frame_id = "/world";
+    hotspot_marker.color.a = 1.0; 
+    hotspot_marker.color.r = 1.0;
+    hotspot_marker.id = 0;
     ros::Duration lifetime;
-    cube_marker.lifetime = lifetime.fromSec(1); // lifetime of 40ms : 25Hz
+    hotspot_marker.lifetime = lifetime.fromSec(1); // lifetime of 40ms : 25Hz
 
 	for(auto itr = hotspots.begin(); itr != hotspots.end(); itr++){
 			geometry_msgs::Point obj;
@@ -409,12 +411,46 @@ void IpasDemo::printHotspots(std::unordered_set<int64_t>& hotspots) {
 	        obj.y = *itr / num_row_;
 	        // std::cout << "pos: " << obj.x << " " << obj.y << std::endl;
 	        obj.z = 0.1;
-	        cube_marker.points.push_back(obj);
-	        cube_marker.colors.push_back(cube_marker.color);
-	        cube_marker.header.stamp = ros::Time::now();
-	        cube_marker_array.markers.push_back(cube_marker);
+	        hotspot_marker.points.push_back(obj);
+	        hotspot_marker.colors.push_back(hotspot_marker.color);
+	        hotspot_marker.header.stamp = ros::Time::now();
+	        hotspot_marker_array.markers.push_back(hotspot_marker);
     }
-    markerarray_pub_.publish(cube_marker_array);
+    markerarray_pub_.publish(hotspot_marker_array);
+}
+
+void IpasDemo::printObstacle() {
+	visualization_msgs::MarkerArray obstacle_marker_array;
+
+    visualization_msgs::Marker obstacle_marker;
+    obstacle_marker.type = visualization_msgs::Marker::CUBE_LIST;
+    obstacle_marker.action = visualization_msgs::Marker::ADD;
+    obstacle_marker.ns = "obstcle";
+    obstacle_marker.scale.x = 1;
+    obstacle_marker.scale.y = 1;
+    obstacle_marker.scale.z = 0.1;
+    obstacle_marker.header.frame_id = "/world";
+    obstacle_marker.color.a = 0.0; 
+    obstacle_marker.color.g = 0.0;
+    obstacle_marker.color.b = 1.0;
+    obstacle_marker.color.r = 0.0;
+    obstacle_marker.id = 0;
+    obstacle_marker.lifetime = ros::Duration();
+
+	for(auto range_id : range_idx_) {
+		for (auto id = range_id[0]; id < range_id[1]; id++) {
+			geometry_msgs::Point obj;
+	        obj.x = id % num_col_ + 0.5;
+	        obj.y = id / num_row_ + 0.5;
+	        // std::cout << "pos: " << obj.x << " " << obj.y << std::endl;
+	        obj.z = 0.1;
+	        obstacle_marker.points.push_back(obj);
+	        obstacle_marker.colors.push_back(obstacle_marker.color);
+	        obstacle_marker.header.stamp = ros::Time::now();
+	        obstacle_marker_array.markers.push_back(obstacle_marker);
+	    }
+    }
+    markerarray_pub_.publish(obstacle_marker_array);
 }
 
 void IpasDemo::printAxis() {
@@ -492,7 +528,7 @@ void IpasDemo::printAxis() {
 	textx_marker.pose.orientation.z = 0.0;
 	textx_marker.pose.orientation.w = 1.0;
 
-	textx_marker.text = "X axis";
+	textx_marker.text = "X AXIS";
 
 	textx_marker.scale.z = 0.5;
 
@@ -517,13 +553,118 @@ void IpasDemo::printAxis() {
 	texty_marker.pose.orientation.z = 0.0;
 	texty_marker.pose.orientation.w = 1.0;
 
-	texty_marker.text = "Y axis";
+	texty_marker.text = "Y AXIS";
 
 	texty_marker.scale.z = 0.5;
 
 	texty_marker.color.g = 1.0;
 	texty_marker.color.a = 1.0;
 	marker_pub_.publish(texty_marker);
+
+    visualization_msgs::Marker textx0_marker;
+	textx0_marker.header.frame_id = "/world";
+	textx0_marker.header.stamp = ros::Time::now();
+	textx0_marker.ns = "text";
+	textx0_marker.id = 5;
+	textx0_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	textx0_marker.action = visualization_msgs::Marker::ADD;
+
+	textx0_marker.pose.position.x = 0.5;
+	textx0_marker.pose.position.y = -0.5;
+	textx0_marker.pose.position.z = 0.1;
+	textx0_marker.pose.orientation.x = 0.0;
+	textx0_marker.pose.orientation.y = 0.0;
+	textx0_marker.pose.orientation.z = 0.0;
+	textx0_marker.pose.orientation.w = 1.0;
+
+	textx0_marker.text = "0";
+
+	textx0_marker.scale.z = 0.7;
+
+	textx0_marker.color.r = 1.0;
+	textx0_marker.color.g = 1.0;
+	textx0_marker.color.b = 0.0;
+	textx0_marker.color.a = 1.0;
+	marker_pub_.publish(textx0_marker);
+
+    visualization_msgs::Marker textx14_marker;
+	textx14_marker.header.frame_id = "/world";
+	textx14_marker.header.stamp = ros::Time::now();
+	textx14_marker.ns = "text";
+	textx14_marker.id = 6;
+	textx14_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	textx14_marker.action = visualization_msgs::Marker::ADD;
+
+	textx14_marker.pose.position.x = 14.5;
+	textx14_marker.pose.position.y = -0.5;
+	textx14_marker.pose.position.z = 0.1;
+	textx14_marker.pose.orientation.x = 0.0;
+	textx14_marker.pose.orientation.y = 0.0;
+	textx14_marker.pose.orientation.z = 0.0;
+	textx14_marker.pose.orientation.w = 1.0;
+
+	textx14_marker.text = "14";
+
+	textx14_marker.scale.z = 0.7;
+
+	textx14_marker.color.r = 1.0;
+	textx14_marker.color.g = 1.0;
+	textx14_marker.color.b = 0.0;
+	textx14_marker.color.a = 1.0;
+	marker_pub_.publish(textx14_marker);
+
+    visualization_msgs::Marker texty0_marker;
+	texty0_marker.header.frame_id = "/world";
+	texty0_marker.header.stamp = ros::Time::now();
+	texty0_marker.ns = "text";
+	texty0_marker.id = 7;
+	texty0_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	texty0_marker.action = visualization_msgs::Marker::ADD;
+
+	texty0_marker.pose.position.x = -0.5;
+	texty0_marker.pose.position.y = 0.5;
+	texty0_marker.pose.position.z = 0.1;
+	texty0_marker.pose.orientation.x = 0.0;
+	texty0_marker.pose.orientation.y = 0.0;
+	texty0_marker.pose.orientation.z = 0.0;
+	texty0_marker.pose.orientation.w = 1.0;
+
+	texty0_marker.text = "0";
+
+	texty0_marker.scale.z = 0.7;
+
+	texty0_marker.color.r = 1.0;
+	texty0_marker.color.g = 1.0;
+	texty0_marker.color.b = 0.0;
+	texty0_marker.color.a = 1.0;
+	marker_pub_.publish(texty0_marker);
+
+    visualization_msgs::Marker texty14_marker;
+	texty14_marker.header.frame_id = "/world";
+	texty14_marker.header.stamp = ros::Time::now();
+	texty14_marker.ns = "text";
+	texty14_marker.id = 8;
+	texty14_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	texty14_marker.action = visualization_msgs::Marker::ADD;
+
+	texty14_marker.pose.position.x = -0.5;
+	texty14_marker.pose.position.y = 14.5;
+	texty14_marker.pose.position.z = 0.1;
+	texty14_marker.pose.orientation.x = 0.0;
+	texty14_marker.pose.orientation.y = 0.0;
+	texty14_marker.pose.orientation.z = 0.0;
+	texty14_marker.pose.orientation.w = 1.0;
+
+	texty14_marker.text = "14";
+
+	texty14_marker.scale.z = 0.7;
+
+	texty14_marker.color.r = 1.0;
+	texty14_marker.color.g = 1.0;
+	texty14_marker.color.b = 0.0;
+	texty14_marker.color.a = 1.0;
+
+	marker_pub_.publish(texty14_marker);
 
 }
 
@@ -560,7 +701,10 @@ int main(int argc, char** argv) {
     int64_t num_row = 15;
     int64_t num_col = 15;
 
-    IpasDemo ipasdemo(&nh, tasks_data, agents, comm, num_vehicle, num_tasks, num_sensors, num_row, num_col);
+    // obstacles range for visulization
+    std::vector<std::vector<int64_t>> range_idx = {{30,36}, {154,160}};
+
+    IpasDemo ipasdemo(&nh, tasks_data, agents, comm, num_vehicle, num_tasks, num_sensors, num_row, num_col, range_idx);
     	
     ROS_INFO("Initializing ipas demo...");
     // ros::Rate loop_rate(0.5); // 5Hz

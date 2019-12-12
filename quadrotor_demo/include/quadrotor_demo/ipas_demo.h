@@ -91,6 +91,7 @@ private:
     std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph;
     std::shared_ptr<SquareGrid> true_grid;
     std::shared_ptr<Graph_t<SquareCell *>> true_graph;
+    std::vector<std::vector<int64_t>> range_idx_;
 
 	// std::ofstream file_path;
 
@@ -98,7 +99,7 @@ public:
 	// IpasDemo(ros::NodeHandle* nodehandle);
 	IpasDemo(ros::NodeHandle* nodehandle, std::vector<Task>& tasks_data, std::vector<AutoVehicle>& agent, 
 			Eigen::MatrixXi& comm_, int64_t num_vehicle, int64_t num_tasks, int64_t num_sensors, int64_t num_row, 
-			int64_t num_col);
+			int64_t num_col, std::vector<std::vector<int64_t>> range_idx);
 	~IpasDemo();
 	void init();
 	void initMap();
@@ -111,6 +112,7 @@ public:
     void printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath);
     void printHotspots(std::unordered_set<int64_t>& hotspots);
     void printAxis();
+    void printObstacle();
     void updateLocalmap(const quadrotor_demo::localmap& localmap);
     void pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes);
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
