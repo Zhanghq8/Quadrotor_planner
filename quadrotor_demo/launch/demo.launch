@@ -2,6 +2,5 @@
 
 <launch>
 	<node pkg="quadrotor_demo" type="localmap_update" name="localmap_update" args="-d $(find quadrotor_demo)/src/localmap_update.cpp" output="screen" />
-	<node pkg="quadrotor_demo" type="controller_tracking" name="controller_tracking" args="-d $(find quadrotor_demo)/src/controller_tracking.cpp" respawn="true" output="screen" />
-	<node pkg="quadrotor_demo" type="ipas_demo" name="ipas_demo" args="-d $(find quadrotor_demo)/src/ipas_demo.cpp" respawn="true" output="screen" />
+	<node pkg="quadrotor_demo" type="ipas_demo" name="ipas_demo" args="-d $(find quadrotor_demo)/src/ipas_demo.cpp" respawn="false" output="screen" />
 </launch>
