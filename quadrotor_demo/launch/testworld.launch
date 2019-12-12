@@ -3,7 +3,8 @@
 <launch>
   <include file="$(find quadrotor_demo)/launch/start.launch">
 
-   <arg name="world" value="$(find quadrotor_demo)/worlds/map1.world"/> 
+   <!-- <arg name="world" value="$(find quadrotor_demo)/worlds/map1.world"/>  -->
+   <arg name="world" value="$(find quadrotor_demo)/worlds/map2.world"/> 
   </include>
 
 </launch>
