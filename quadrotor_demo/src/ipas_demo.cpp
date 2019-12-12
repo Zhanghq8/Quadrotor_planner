@@ -704,9 +704,9 @@ int main(int argc, char** argv) {
     int64_t num_col = 15;
 
     // obstacles range for visulization
-    std::vector<std::vector<int64_t>> range_idx = {{6,9}, {20,24}, {35,39}, {76,79}, {90,94}, 
+    std::vector<std::vector<int64_t>> range_idx = {{6,9}, {20,24}, {35,39}, {75,79}, {90,94}, 
 													{100,101}, {104,105}, {115,120}, {130,135}, 
-													{150,153}, {165,170}, {180,185}, {193,195},
+													{150,153}, {165,169}, {180,185}, {193,195},
 													{206,210}, {220,225}};
 
     IpasDemo ipasdemo(&nh, tasks_data, agents, comm, num_vehicle, num_tasks, num_sensors, num_row, num_col, range_idx);
