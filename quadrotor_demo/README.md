@@ -1,5 +1,5 @@
 # Directed Research
-Mobile robot trajectory planning based on UAV sensor information(simulation)
+Interactive Planning and Sensing with a Team of Multiple Robotic Vehicles in an Unknown Environment
 
 ---
 
@@ -25,14 +25,24 @@ Mobile robot trajectory planning based on UAV sensor information(simulation)
 
 ## Basic Build Instructions
 
-1. Clone hector_* packages
+1. Clone hector_* packages into src folder of your workspace
 2. Compile: `catkin_make`
 3. Clone this repo
 4. Compile: `catkin_make`
 
 ## Node included:
 
-1. Trajectory planning
-2. Controller for trajectory tracking
-3. Image processing
-4. Map updating
+1. IPAS demo: `ipas_demo`
+2. Controller for trajectory tracking: `controller_tracking`
+3. Image processing and Map updating: `localmap_update`
+4. Take off controller: `take_off_controller`
+
+## How to run:
+1. `roslaunch quadrotor_demo spawn_multi_quadrotors.launch`
+2. Once the Gazebo and Rviz were launched successfully, `rosrun quadrotor_demo take_off_controller`
+3. `roslaunch quadrotor_demo demo.launch`
+4. Once quadrotors took off successfully(you will see the msg in the take_off_controller shell), `rosrun quadrotor_demo controller_tracking`
+5. Activate the demo with `rostopic pub /updatemap_flag std_msgs/Bool "data: true"`
+
+## Demo:
+- <<https://youtu.be/GRI9eFAI1XE>>
