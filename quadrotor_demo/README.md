@@ -13,6 +13,7 @@ Interactive Planning and Sensing with a Team of Multiple Robotic Vehicles in an 
   * hector_localization(https://github.com/tu-darmstadt-ros-pkg/hector_localization)
   * (OPTIONAL)gazebo_ros_pkgs(https://github.com/ros-simulation/gazebo_ros_pkgs)
   * (OPTIONAL)uuid_msgs(https://github.com/ros-geographic-info/unique_identifier)
+* Spot package(https://spot.lrde.epita.fr/install.html, Installing the Debian packages)
 * (OPTIONAL)geographic_info ros package(https://github.com/ros-geographic-info/geographic_info)
 * cmake >= 3.5
   * All OSes: [click here for installation instructions](https://cmake.org/install/)
