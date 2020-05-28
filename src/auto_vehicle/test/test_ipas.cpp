@@ -30,59 +30,78 @@ int main(int argc, char** argv )
     //===============================================================================================//
     //===========================================Task - Agent========================================//
     //===============================================================================================//
-    int64_t num_vehicle = 6;
-    int64_t num_tasks = 6;
+    int64_t num_vehicle = 8;
+    int64_t num_tasks = 10;
     // Tasks 
     // Define the task information:
     // Index of task, AP value(ltl), Position, Task Type, Number of vehicle
-    std::vector<Task> tasks_data_ = {Task(0,2,{67},TaskType::RESCUE,num_vehicle),
-                                    Task(1,3,{76},TaskType::RESCUE,num_vehicle),
-                                    Task(2,4,{139},TaskType::RESCUE,num_vehicle),
-                                    Task(3,5,{180},TaskType::RESCUE,num_vehicle),
-                                    Task(4,6,{215},TaskType::RESCUE,num_vehicle),
-                                    Task(5,7,{309},TaskType::RESCUE,num_vehicle)};
+    std::vector<Task> tasks_data_ = {Task(0,2,{880},TaskType::RESCUE,num_vehicle),
+                                    Task(1,3,{457},TaskType::RESCUE,num_vehicle),
+                                    Task(2,4,{194},TaskType::RESCUE,num_vehicle),
+                                    Task(3,5,{108},TaskType::RESCUE,num_vehicle),
+                                    Task(4,6,{145},TaskType::RESCUE,num_vehicle),
+                                    Task(5,7,{356},TaskType::RESCUE,num_vehicle),
+                                    Task(6,8,{290},TaskType::RESCUE,num_vehicle),
+                                    Task(7,9,{505},TaskType::RESCUE,num_vehicle),
+                                    Task(8,10,{565},TaskType::RESCUE,num_vehicle),
+                                    Task(9,11,{865},TaskType::RESCUE,num_vehicle)};
     TasksSet tasks_ = TasksSet(tasks_data_);
     
     // Auto Vehicle Team
     // Index of drone, Initial position, # of drones, Communicate network, Task Type, # of tasks
     Eigen::MatrixXi comm = Eigen::MatrixXi::Ones(1,num_vehicle);
-    int64_t num_sensors = 3;
+    int64_t num_sensors = 4;
     std::vector<AutoVehicle> drones = {AutoVehicle(0,0,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    AutoVehicle(1,380,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    AutoVehicle(2,399,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    AutoVehicle(3,0,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
-                                    AutoVehicle(4,380,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
-                                    AutoVehicle(5,399,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors)};
+                                    AutoVehicle(1,29,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(2,870,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(3,899,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(4,0,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                    AutoVehicle(5,29,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                    AutoVehicle(6,870,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                    AutoVehicle(7,899,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors)};
     
     std::shared_ptr<AutoTeam_t<AutoVehicle>> vehicle_team_ = IPASMeasurement::ConstructAutoTeam(drones);
     //===============================================================================================//
     //============================================= MAP =============================================//
     //===============================================================================================//
     // Initialize uncertain map
-    int64_t num_row = 20;
-    int64_t num_col = 20;
+    int64_t num_row = 30;
+    int64_t num_col = 30;
     std::shared_ptr<SquareGrid> uncertain_grid = GridGraph::CreateSquareGrid(num_row,num_col,1,vehicle_team_,tasks_);
 	std::shared_ptr<Graph_t<SquareCell*>> uncertain_graph = GridGraph::BuildGraphFromSquareGrid(uncertain_grid, true);
 
     // Build true map
     std::shared_ptr<SquareGrid> true_grid = GridGraph::CreateSquareGrid(num_row,num_col,1);
-    std::vector<std::vector<int64_t>> range_idx_ = {{15,20},{36,40},{56,60},{78,80},{40,48},{60,67},{80,86},
-                                                {100,105},{120,124},{140,143},{151,160},{171,180},{191,200},
-                                                {211,214},{217,220},{231,234},{237,240},{220,226},{240,246},
-                                                {260,266},{327,331},{346,352},{366,372},{387,391}};
+    std::vector<std::vector<int64_t>> range_idx_ = {{4,6},{26,29},{34,38},{40,42},{56,59},{64,68},{86,89},
+                                                {95,98},{116,119},{126,128},{156,158},{167,169},{187,189},
+                                                {196,199},{217,219},{222,227},{240,243},{248,250},{253,256},
+                                                {270,273},{313,316},{344,348},{352,355},{363,367},{372,379},
+                                                {384,390},{393,397},{402,409},{414,420},{433,442},{459,473},
+                                                {483,485},{491,503},{511,516},{526,534},{542,547},{556,564},
+                                                {568,570},{573,575},{589,594},{596,600},{606,608},{615,617},
+                                                {621,624},{626,630},{656,660},{687,690},{697,699},{701,703},
+                                                {718,720},{731,733},{761,766},{793,795},{823,825},{890,893}};
     for(auto rg: range_idx_){
         for(int ii = rg[0]; ii<rg[1];ii++){
             true_grid->SetObstacleRegionLabel(ii,1);
         }
     }
-    true_grid->SetObstacleRegionLabel(4,1);
-    true_grid->SetObstacleRegionLabel(5,1);
-    true_grid->SetObstacleRegionLabel(6,1);
-    true_grid->SetObstacleRegionLabel(9,1);
-    true_grid->SetObstacleRegionLabel(14,1);
-    true_grid->SetObstacleRegionLabel(20,1);
-    true_grid->SetObstacleRegionLabel(21,1);
-    true_grid->SetObstacleRegionLabel(22,1);
+    true_grid->SetObstacleRegionLabel(11,1);
+    true_grid->SetObstacleRegionLabel(70,1);
+    true_grid->SetObstacleRegionLabel(147,1);
+    true_grid->SetObstacleRegionLabel(177,1);
+    true_grid->SetObstacleRegionLabel(322,1);
+    true_grid->SetObstacleRegionLabel(423,1);
+    true_grid->SetObstacleRegionLabel(450,1);
+    true_grid->SetObstacleRegionLabel(453,1);
+    true_grid->SetObstacleRegionLabel(481,1);
+    true_grid->SetObstacleRegionLabel(576,1);
+    true_grid->SetObstacleRegionLabel(586,1);
+    true_grid->SetObstacleRegionLabel(604,1);
+    true_grid->SetObstacleRegionLabel(637,1);
+    true_grid->SetObstacleRegionLabel(667,1);
+    true_grid->SetObstacleRegionLabel(728,1);
+    true_grid->SetObstacleRegionLabel(758,1);
     std::shared_ptr<Graph_t<SquareCell *>> true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
     //===============================================================================================//
     //============================================= CBBA ============================================//

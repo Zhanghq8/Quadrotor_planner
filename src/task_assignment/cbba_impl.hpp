@@ -278,7 +278,7 @@ namespace librav{
 									agent->cbba_y_(j) = neighbor->cbba_history_.y_history_.back()(j);
 								}
 								else if (std::fabs(neighbor->cbba_history_.y_history_.back()(j) - agent->cbba_y_(j)) <= EPS_){
-									if(agent->cbba_y_(j) > neighbor->cbba_history_.y_history_.back()(j)){
+									if(agent->cbba_z_(j) > neighbor->cbba_history_.z_history_.back()(j)){
 										// std::cout << "case 15" << std::endl;
 										agent->cbba_z_(j) = neighbor->cbba_history_.z_history_.back()(j);
 										agent->cbba_y_(j) = neighbor->cbba_history_.y_history_.back()(j);
