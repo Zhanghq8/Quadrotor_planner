@@ -39,11 +39,13 @@ private:
     vector<bool> switchFlag01;
     vector<bool> switchFlag12;
     vector<bool> switchFlag23;
+    vector<bool> switchFlag34;
     vector<bool> updateMapFlag;
 
     bool switchFlag0 = false;
     bool switchFlag1 = false;
     bool switchFlag2 = false;
+    bool switchFlag3 = false;
     // pid gain parameters
     double kp;
     double kd;
@@ -81,26 +83,32 @@ private:
     geometry_msgs::Twist control1input;
     geometry_msgs::Twist control2input;
     geometry_msgs::Twist control3input;
+    geometry_msgs::Twist control4input;
 
     ros::NodeHandle nh_;
     ros::Subscriber current1pos_sub_;
     ros::Subscriber current2pos_sub_;
     ros::Subscriber current3pos_sub_;
+    ros::Subscriber current4pos_sub_;
     ros::Subscriber path_sub_;
     ros::Subscriber event1_sub_;
     ros::Subscriber event2_sub_;
     ros::Subscriber event3_sub_;
+    ros::Subscriber event4_sub_;
     ros::Subscriber update1_complete_sub_;
     ros::Subscriber update2_complete_sub_;
     ros::Subscriber update3_complete_sub_;
+    ros::Subscriber update4_complete_sub_;
 
     ros::Publisher control1input_pub_;
     ros::Publisher control2input_pub_;
     ros::Publisher control3input_pub_;
+    ros::Publisher control4input_pub_;
     ros::Publisher ready_flag_pub_;
     ros::Publisher update1Map_flag_pub_;
     ros::Publisher update2Map_flag_pub_;
     ros::Publisher update3Map_flag_pub_;
+    ros::Publisher update4Map_flag_pub_;
     ros::Publisher updategraph_flag_pub_;
 
 
@@ -115,7 +123,7 @@ public:
 
     void setpidgains(double p=0.5, double i=0.00, double d=0.0);
     void setvelocity(double x=0.6);
-    void setdronenum(int x=3);
+    void setdronenum(int x=4);
     void updateMap();
     // void setpath();
     
@@ -123,13 +131,16 @@ public:
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
     void currentpos2Callback(const geometry_msgs::PoseStamped& odom2);
     void currentpos3Callback(const geometry_msgs::PoseStamped& odom3);
+    void currentpos4Callback(const geometry_msgs::PoseStamped& odom4);
     void event1Callback(const geometry_msgs::PoseStamped& odom1);
     void event2Callback(const geometry_msgs::PoseStamped& odom2);
     void event3Callback(const geometry_msgs::PoseStamped& odom3); 
+    void event4Callback(const geometry_msgs::PoseStamped& odom4); 
     void pathCallback(const quadrotor_demo::final_path& path);
     void update1CompleteCallback(const std_msgs::Bool& flag1);
     void update2CompleteCallback(const std_msgs::Bool& flag2);
     void update3CompleteCallback(const std_msgs::Bool& flag3);
+    void update4CompleteCallback(const std_msgs::Bool& flag4);
 
 };
 
