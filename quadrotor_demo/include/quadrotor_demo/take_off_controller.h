@@ -29,6 +29,7 @@ private:
     bool flag1 = false;
     bool flag2 = false;
     bool flag3 = false;
+    bool flag4 = false;
     // bool ready_flag = true;
 
     // pid gain parameters
@@ -57,16 +58,19 @@ private:
     geometry_msgs::Twist control1input;
     geometry_msgs::Twist control2input;
     geometry_msgs::Twist control3input;
+    geometry_msgs::Twist control4input;
 
     ros::NodeHandle nh_;
     ros::Subscriber current1pos_sub_;
     ros::Subscriber current2pos_sub_;
     ros::Subscriber current3pos_sub_;
+    ros::Subscriber current4pos_sub_;
     ros::Subscriber stop_sub_;
     // ros::Subscriber laserpos_sub_;
     ros::Publisher control1input_pub_;
     ros::Publisher control2input_pub_;
     ros::Publisher control3input_pub_;
+    ros::Publisher control4input_pub_;
     // ros::Publisher ready_flag_pub_;
 
 public:
@@ -78,12 +82,13 @@ public:
     // void setgoalpos(double x, double y);
     void setpidgains(double p=1.0, double i=0.00, double d=0.2);
     void setvelocity(double x=1.0, double yaw=0.05);
-    void setdronenum(int x=3);
+    void setdronenum(int x=4);
     
     void setgoal(double z=6.0, double yaw=0.0);
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
     void currentpos2Callback(const geometry_msgs::PoseStamped& odom2);
     void currentpos3Callback(const geometry_msgs::PoseStamped& odom3);
+    void currentpos4Callback(const geometry_msgs::PoseStamped& odom4);
     void eventCallback(const geometry_msgs::Twist& vel); 
 
 };

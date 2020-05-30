@@ -43,6 +43,7 @@ void Takeoff_Controller::initSub() {
     current1pos_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &Takeoff_Controller::currentpos1Callback,this);
     current2pos_sub_ = nh_.subscribe("/drone2/ground_truth_to_tf/pose", 1, &Takeoff_Controller::currentpos2Callback,this);
     current3pos_sub_ = nh_.subscribe("/drone3/ground_truth_to_tf/pose", 1, &Takeoff_Controller::currentpos3Callback,this);
+    current4pos_sub_ = nh_.subscribe("/drone4/ground_truth_to_tf/pose", 1, &Takeoff_Controller::currentpos4Callback,this);
     stop_sub_ = nh_.subscribe("/drone1/cmd_vel", 1000, &Takeoff_Controller::eventCallback,this);
 }
 
@@ -52,6 +53,7 @@ void Takeoff_Controller::initPub() {
     control1input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone1/cmd_vel", 1, true); 
     control2input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone2/cmd_vel", 1, true);
     control3input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone3/cmd_vel", 1, true);
+    control4input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone4/cmd_vel", 1, true);
     // ready_flag_pub_ = nh_.advertise<std_msgs::Bool>("/ready_flag", 1, true);
 }
 
@@ -85,8 +87,7 @@ void Takeoff_Controller::currentpos2Callback(const geometry_msgs::PoseStamped& o
     posvector[1][6] = odom2.pose.orientation.w;
 }
 
-void Takeoff_Controller::currentpos3Callback(const geometry_msgs::PoseStamped& odom3) {   
-
+void Takeoff_Controller::currentpos3Callback(const geometry_msgs::PoseStamped& odom3) {
     posvector[2][0] = odom3.pose.position.x;
     posvector[2][1] = odom3.pose.position.y;
     posvector[2][2] = odom3.pose.position.z;
@@ -94,6 +95,17 @@ void Takeoff_Controller::currentpos3Callback(const geometry_msgs::PoseStamped& o
     posvector[2][4] = odom3.pose.orientation.y;
     posvector[2][5] = odom3.pose.orientation.z;
     posvector[2][6] = odom3.pose.orientation.w;
+}
+
+void Takeoff_Controller::currentpos4Callback(const geometry_msgs::PoseStamped& odom4) {   
+
+    posvector[3][0] = odom4.pose.position.x;
+    posvector[3][1] = odom4.pose.position.y;
+    posvector[3][2] = odom4.pose.position.z;
+    posvector[3][3] = odom4.pose.orientation.x; 
+    posvector[3][4] = odom4.pose.orientation.y;
+    posvector[3][5] = odom4.pose.orientation.z;
+    posvector[3][6] = odom4.pose.orientation.w;
 
     // double pose_error = 0;
     // if (start_flag == true && ready_flag == true) {
@@ -174,6 +186,11 @@ void Takeoff_Controller::currentpos3Callback(const geometry_msgs::PoseStamped& o
         control3input.linear.z = zyawvelocity[2][0];
         control3input.angular.z = zyawvelocity[2][1];
         control3input_pub_.publish(control3input);
+        // drone3
+        control4input.linear.z = zyawvelocity[3][0];
+        control4input.angular.z = zyawvelocity[3][1];
+        control4input_pub_.publish(control4input);
+
         if (fabs(diffvector[0][0]) < 0.05 && fabs(diffvector[0][1]) < 0.05) {
             flag1 = true;
         }
@@ -183,18 +200,21 @@ void Takeoff_Controller::currentpos3Callback(const geometry_msgs::PoseStamped& o
         if (fabs(diffvector[2][0]) < 0.05 && fabs(diffvector[2][1]) < 0.05) {
             flag3 = true;
         }
+        if (fabs(diffvector[3][0]) < 0.05 && fabs(diffvector[3][1]) < 0.05) {
+            flag4 = true;
+        }
 
     }    
 }
 
 void Takeoff_Controller::eventCallback(const geometry_msgs::Twist& vel) {
-    if (flag1 == true && flag2 == true && flag3 == true) {
+    if (flag1 == true && flag2 == true && flag3 == true && flag4 == true) {
         cnt++;
         if (cnt == 1) {
             ROS_INFO("Taking off finished...");
         }
     }
-    if ((vel.linear.x != 0 || vel.linear.y != 0) && (flag1 == true && flag2 == true && flag3 == true)) {
+    if ((vel.linear.x != 0 || vel.linear.y != 0) && (flag1 == true && flag2 == true && flag3 == true && flag4 == true)) {
         ROS_INFO("Taking off node shutdown...");
         ros::shutdown();
     }
