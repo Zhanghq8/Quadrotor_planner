@@ -23,8 +23,10 @@ void LocalMapUpdate::init() {
         index = "2";
     } else if (topic[6] == '3') {
         index = "3";
+    } else if (topic[6] == '4') {
+        index = "4";
     } else {
-        assert(topic[6] >= '1' && topic[6] <= '3' && "The input ros topic is doestn't match!");
+        assert(topic[6] >= '1' && topic[6] <= '4' && "The input ros topic is doestn't match!");
     }
     updateMapTopic = "/updatemap" + index;
     posTopic = "/drone" + index + "/ground_truth_to_tf/pose";
@@ -348,12 +350,15 @@ int main(int argc, char** argv)
     string str1 = "/drone1/downward_cam/camera/image";
     string str2 = "/drone2/downward_cam/camera/image";
     string str3 = "/drone3/downward_cam/camera/image";
+    string str4 = "/drone4/downward_cam/camera/image";
     ros::NodeHandle nh;
     LocalMapUpdate lm1(&nh, &nh, str1);
     ros::NodeHandle nh1;
     LocalMapUpdate lm2(&nh1, &nh1, str2);    
     ros::NodeHandle nh2;
     LocalMapUpdate lm3(&nh2, &nh2, str3);
+    ros::NodeHandle nh3;
+    LocalMapUpdate lm4(&nh3, &nh3, str4);
 
     ros::spin();
     return 0;
