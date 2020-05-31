@@ -55,6 +55,7 @@ private:
     ros::Subscriber currentpos1_sub_;
     ros::Subscriber currentpos2_sub_;
     ros::Subscriber currentpos3_sub_;
+    ros::Subscriber currentpos4_sub_;
     // make sure drones are ready to get new interested point
     ros::Subscriber updatemapflag_sub_;
     ros::Subscriber updategraphflag_sub_;
@@ -62,6 +63,7 @@ private:
     ros::Subscriber localmap1_sub_;
     ros::Subscriber localmap2_sub_;
     ros::Subscriber localmap3_sub_;
+    ros::Subscriber localmap4_sub_;
 
     // ipas param
     int64_t num_vehicle_;
@@ -119,9 +121,11 @@ public:
     void currentpos1Callback(const geometry_msgs::PoseStamped& odom1);
     void currentpos2Callback(const geometry_msgs::PoseStamped& odom2);
     void currentpos3Callback(const geometry_msgs::PoseStamped& odom3);
+    void currentpos4Callback(const geometry_msgs::PoseStamped& odom4);
     void localmap1Callback(const quadrotor_demo::localmap& localmap1);
     void localmap2Callback(const quadrotor_demo::localmap& localmap2);
     void localmap3Callback(const quadrotor_demo::localmap& localmap3);
+    void localmap4Callback(const quadrotor_demo::localmap& localmap4);
     void updatemapflagCallback(const std_msgs::Bool& flag);
     void updategraphflagCallback(const std_msgs::Bool& graphFlag);
 };

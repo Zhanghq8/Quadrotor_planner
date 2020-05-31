@@ -8,7 +8,7 @@ IpasDemo::IpasDemo(ros::NodeHandle* nodehandle, std::vector<Task>& tasks_data, s
 			(range_idx) { 
 	// constructor
  	// ROS_INFO("In class constructor of IpasDemo");
-	assert(num_sensors_ == 3 && "The number of sensors in this demo must be strictly equal to 3!");
+	assert(num_sensors_ == 4 && "The number of sensors in this demo must be strictly equal to 4!");
 	init();
     initSub();
     initPub();
@@ -54,9 +54,11 @@ void IpasDemo::initSub() {
     currentpos1_sub_ = nh_.subscribe("/drone1/ground_truth_to_tf/pose", 1, &IpasDemo::currentpos1Callback,this);
     currentpos2_sub_ = nh_.subscribe("/drone2/ground_truth_to_tf/pose", 1, &IpasDemo::currentpos2Callback,this);
     currentpos3_sub_ = nh_.subscribe("/drone3/ground_truth_to_tf/pose", 1, &IpasDemo::currentpos3Callback,this);
+    currentpos4_sub_ = nh_.subscribe("/drone4/ground_truth_to_tf/pose", 1, &IpasDemo::currentpos4Callback,this);
     localmap1_sub_ = nh_.subscribe("/localmap1", 1, &IpasDemo::localmap1Callback,this);
     localmap2_sub_ = nh_.subscribe("/localmap2", 1, &IpasDemo::localmap2Callback,this);
     localmap3_sub_ = nh_.subscribe("/localmap3", 1, &IpasDemo::localmap3Callback,this);
+    localmap4_sub_ = nh_.subscribe("/localmap4", 1, &IpasDemo::localmap4Callback,this);
     updatemapflag_sub_ = nh_.subscribe("/updatemap_flag", 1, &IpasDemo::updatemapflagCallback,this);
     updategraphflag_sub_ = nh_.subscribe("/updategraph_flag", 1, &IpasDemo::updategraphflagCallback,this);
 }
@@ -106,6 +108,17 @@ void IpasDemo::currentpos3Callback(const geometry_msgs::PoseStamped& odom3) {
     // posvector[2][6] = odom3.pose.orientation.w;
 }
 
+void IpasDemo::currentpos4Callback(const geometry_msgs::PoseStamped& odom4) {   
+
+    // posvector[2][0] = odom3.pose.position.x;
+    // posvector[2][1] = odom3.pose.position.y;
+    // posvector[2][2] = odom3.pose.position.z;
+    // posvector[2][3] = odom3.pose.orientation.x; 
+    // posvector[2][4] = odom3.pose.orientation.y;
+    // posvector[2][5] = odom3.pose.orientation.z;
+    // posvector[2][6] = odom3.pose.orientation.w;
+}
+
 void IpasDemo::localmap1Callback(const quadrotor_demo::localmap& localmap1) {
 	updateLocalmap(localmap1);
 }
@@ -116,6 +129,10 @@ void IpasDemo::localmap2Callback(const quadrotor_demo::localmap& localmap2) {
 
 void IpasDemo::localmap3Callback(const quadrotor_demo::localmap& localmap3) {
 	updateLocalmap(localmap3);
+}
+
+void IpasDemo::localmap4Callback(const quadrotor_demo::localmap& localmap4) {
+    updateLocalmap(localmap4);
 }
 
 void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
@@ -233,7 +250,7 @@ void IpasDemo::mobilePath() {
     //============================== DEBUG ========================//
     //=============================================================//
     for(auto p: path_ltl_){
-    	if (p.first < 3) {
+    	if (p.first < num_vehicle_) {
 	        std::cout << "The path for vehicle " << p.first << " is: ";
 	        // file_path << "The path for vehicle " << p.first << " is: ";
 	        for(auto v: p.second){
@@ -270,12 +287,14 @@ void IpasDemo::sensorPath() {
     sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
     hotspots_.clear();
     hotspots_ = sensing_tasks_.GetHotspots();
+    std::cout << "hotspots " << hotspots_.size() << std::endl;
     printHotspots(hotspots_);
     CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
 
     std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,sensing_tasks_,TaskType::MEASURE);
+    std::cout << "path for sensor " << path_sensing_.size() << std::endl;
     for(auto p: path_sensing_){
-    	if (p.first >= 3) {
+    	if (p.first >= (num_vehicle_ - num_sensors_)) {
 	        std::cout << "The path for sensor " << p.first << " is: ";
 	        // file_path << "The path for vehicle " << p.first << " is: ";
 	        for(auto v: p.second){
@@ -286,6 +305,7 @@ void IpasDemo::sensorPath() {
 	        // file_path << "\n";
     	}
     }
+    std::cout << "publishing path for sensors" << std::endl;
     pathesPub(path_sensing_);
 }
 
@@ -294,12 +314,12 @@ void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
 	quadrotor_demo::path path_msg_empty;
 	// int path_size = pathes.size();
     for(auto p: pathes){
-    	if (p.first >= 3) {
+    	if (p.first >= (num_vehicle_ - num_sensors_)) {
     		quadrotor_demo::pathes pathes_msg;
-        	pathes_msg.path_name = std::string("Drone ") + std::string(std::to_string(p.first-2));
+        	pathes_msg.path_name = std::string("Drone ") + std::string(std::to_string(p.first - (num_vehicle_ - num_sensors_) + 1));
         	if (p.second.empty()) {
         		pathes_msg.empty = true;
-        		int cnt = 3;
+        		int cnt = num_sensors_;
         		while (cnt > 0) {
         			pathes_msg.pathes_data.push_back(path_msg_empty);
         			cnt--;
@@ -327,7 +347,7 @@ void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
 		        		}
 		        	}
 		        }
-		        while (cnt < 3) {
+		        while (cnt < num_sensors_) {
 	        		pathes_msg.pathes_data.push_back(path_msg_empty);
 	        		cnt++;
 		        }
@@ -678,36 +698,47 @@ int main(int argc, char** argv) {
     //===============================================================================================//
     //===========================================Task - Agent========================================//
     //===============================================================================================//
-    int64_t num_vehicle = 6;
-    int64_t num_tasks = 6;
+    int64_t num_vehicle = 8;
+    int64_t num_tasks = 10;
     // Tasks 
     // Define the task information:
     // Index of task, AP value(ltl), Position, Task Type, Number of vehicle
-    std::vector<Task> tasks_data = {Task(0,2,{67},TaskType::RESCUE,num_vehicle),
-                                	Task(1,3,{102},TaskType::RESCUE,num_vehicle),
-                                	Task(2,4,{120},TaskType::RESCUE,num_vehicle),
-                                	Task(3,5,{149},TaskType::RESCUE,num_vehicle),
-                                	Task(4,6,{169},TaskType::RESCUE,num_vehicle),
-                                	Task(5,7,{191},TaskType::RESCUE,num_vehicle)};
+    std::vector<Task> tasks_data = {Task(0,2,{880},TaskType::RESCUE,num_vehicle),
+                                    Task(1,3,{457},TaskType::RESCUE,num_vehicle),
+                                    Task(2,4,{194},TaskType::RESCUE,num_vehicle),
+                                    Task(3,5,{108},TaskType::RESCUE,num_vehicle),
+                                    Task(4,6,{145},TaskType::RESCUE,num_vehicle),
+                                    Task(5,7,{356},TaskType::RESCUE,num_vehicle),
+                                    Task(6,8,{290},TaskType::RESCUE,num_vehicle),
+                                    Task(7,9,{505},TaskType::RESCUE,num_vehicle),
+                                    Task(8,10,{565},TaskType::RESCUE,num_vehicle),
+                                    Task(9,11,{865},TaskType::RESCUE,num_vehicle)};
     // Auto Vehicle Team
     // Index of drone, Initial position, # of drones, Communicate network, Task Type, # of tasks
     Eigen::MatrixXi comm = Eigen::MatrixXi::Ones(1,num_vehicle);
-    int64_t num_sensors = 3;
-    std::vector<AutoVehicle> agents = { AutoVehicle(0,0,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    	AutoVehicle(1,210,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    	AutoVehicle(2,14,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
-                                    	AutoVehicle(3,0,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
-                                    	AutoVehicle(4,210,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
-                                    	AutoVehicle(5,14,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors) };
+    int64_t num_sensors = 4;
+    std::vector<AutoVehicle> agents = {AutoVehicle(0,0,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(1,29,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(2,870,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(3,899,num_vehicle,comm,TaskType::RESCUE,num_tasks,num_sensors),
+                                    AutoVehicle(4,0,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                    AutoVehicle(5,29,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                    AutoVehicle(6,870,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors),
+                                    AutoVehicle(7,899,num_vehicle,comm,TaskType::MEASURE,num_tasks,num_sensors)};
 
-    int64_t num_row = 15;
-    int64_t num_col = 15;
+    int64_t num_row = 30;
+    int64_t num_col = 30;
 
     // obstacles range for visulization
-    std::vector<std::vector<int64_t>> range_idx = {{6,9}, {20,24}, {35,39}, {75,79}, {90,94}, 
-													{100,101}, {104,105}, {115,120}, {130,135}, 
-													{150,153}, {165,169}, {180,185}, {193,195},
-													{206,210}, {220,225}};
+    std::vector<std::vector<int64_t>> range_idx = {{4,6},{11,12},{26,29},{34,38},{40,42},{56,59},{64,68},{70,71},{86,89},
+                                                {95,98},{116,119},{126,128},{147,148},{156,158},{167,169},{177,178},{187,189},
+                                                {196,199},{217,219},{222,227},{240,243},{248,250},{253,256},
+                                                {270,273},{313,316},{322,323},{344,348},{352,355},{363,367},{372,379},
+                                                {384,390},{393,397},{402,409},{414,420},{423,424},{433,442},{450,451},{453,454},{459,473},
+                                                {481,482},{483,485},{491,503},{511,516},{526,534},{542,547},{556,564},
+                                                {568,570},{573,575},{576,577},{586,587},{589,594},{596,600},{604,605},{606,608},{615,617},
+                                                {621,624},{626,630},{637,638},{656,660},{667,668},{687,690},{697,699},{701,703},
+                                                {718,720},{728,729},{731,733},{758,759},{761,766},{793,795},{823,825},{890,893}};
 
     IpasDemo ipasdemo(&nh, tasks_data, agents, comm, num_vehicle, num_tasks, num_sensors, num_row, num_col, range_idx);
     	
