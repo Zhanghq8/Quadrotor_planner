@@ -107,7 +107,7 @@ void Controller_tracking::pathCallback(const quadrotor_demo::final_path& path) {
             for (std::vector<quadrotor_demo::path>::const_iterator pdata = itr->pathes_data.begin(); pdata != itr->pathes_data.end(); ++pdata) {
                 vector<Vec2i> pose;
                 for (std::vector<quadrotor_demo::pose>::const_iterator posdata = pdata->path.begin(); posdata != pdata->path.end(); ++posdata) {
-                    std::cout << posdata->x << " " << posdata->y << " " << posdata->z << std::endl;
+                    // std::cout << posdata->x << " " << posdata->y << " " << posdata->z << std::endl;
                     Vec2i coordinate;
                     coordinate.id = posdata->id;
                     coordinate.x = posdata->x;
@@ -122,7 +122,7 @@ void Controller_tracking::pathCallback(const quadrotor_demo::final_path& path) {
             sensorPath.emplace_back(singleSensorPath);
         }
     }
-    std::cout << sensorPath[0].size() << " " << sensorPath[1].size() << sensorPath[2].size() << sensorPath[3].size() << std::endl; 
+    // std::cout << sensorPath[0].size() << " " << sensorPath[1].size() << sensorPath[2].size() << sensorPath[3].size() << std::endl; 
     start_flag = true;
     updateMapFlag = vector<bool> (drone_num, false);
     updateComplete = vector<bool> (drone_num, false);
