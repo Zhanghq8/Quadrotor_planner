@@ -68,10 +68,10 @@ void LocalMapUpdate::imageCallback(const sensor_msgs::ImageConstPtr& msg) {
     // cout << "---------------------" << endl;
     // cout << "For rostopic: " << topic << endl;
     if (updateFlag) {
-        ros::Rate loop_rate(10);
-        loop_rate.sleep();
+        // ros::Rate loop_rate(10);
+        // loop_rate.sleep();
     	filter(colorImg);
-        loop_rate.sleep();
+        // loop_rate.sleep();
     }
 }
 
@@ -189,6 +189,9 @@ void LocalMapUpdate::filter(const Mat& color_img) {
             quadrotor_demo::obstacle_info obstacle_msg;
             obstacle_msg.id = itr->first;
             obstacle_msg.isobstacle = itr->second;
+            // if (itr->second) {
+            //     std::cout << "obstacle id: " << itr->first << std::endl;
+            // }
             localmap_msg.obstacle_data.push_back(obstacle_msg);
         }
     }
