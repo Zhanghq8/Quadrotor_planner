@@ -31,7 +31,7 @@ namespace librav{
         bool CheckConvergence(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team);
 
         template<typename VehicleType>
-        void ConsensusBasedBundleAlgorithm(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks);
+        std::vector<std::vector<int>> ConsensusBasedBundleAlgorithm(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks);
     };
 }
 

@@ -388,7 +388,9 @@ namespace librav{
 	}
 
 	template<typename VehicleType>
-	void CBBA::ConsensusBasedBundleAlgorithm(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks){
+	std::vector<std::vector<int>> CBBA::ConsensusBasedBundleAlgorithm(std::shared_ptr<AutoTeam_t<VehicleType>> vehicle_team, TasksSet tasks){
+		// 20 should be larger than the number of vehicles
+		std::vector<std::vector<int>> hotspotVec(20);
 		bool flag = false;
 		// Init CBBA
 		for(auto&agent: vehicle_team->auto_team_){
@@ -444,6 +446,7 @@ namespace librav{
 		std::cout << "The convergence of CBBA is achieved. " << std::endl;
 		std::cout << "The number of iteration is " << vehicle_team->auto_team_.front()->cbba_iter_ << std::endl;
 		for(auto& agent: vehicle_team->auto_team_){
+			std::vector<int> hotspotIndex;
 			std::cout << "Vehicle " << agent->idx_ << std::endl;
 			std::cout << "The info of winner is: " << std::endl;
 			std::cout << agent->cbba_z_ << std::endl;
@@ -452,10 +455,12 @@ namespace librav{
 			std::cout << "The task assignment result is ";
 			for (auto& tt: agent->task_path_){
 				std::cout << tt << ", ";
-			} 
+				hotspotVec[agent->idx_].push_back(tt);
+			}
 			std::cout << std::endl;
 			std::cout << "========================================================" << std::endl;
 		}
+		return hotspotVec;
 	}
 }
 #endif /* CBBA_IMPL_HPP */
