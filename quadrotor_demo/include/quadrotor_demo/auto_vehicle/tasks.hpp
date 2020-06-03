@@ -55,7 +55,7 @@ namespace librav{
 
             Task GetTaskFromID(int64_t idx);
             int64_t GetTaskPosFromID(int64_t idx);
-            std::unordered_set<int64_t> GetHotspots();
+            std::vector<int64_t> GetHotspots();
     };
 }
 
