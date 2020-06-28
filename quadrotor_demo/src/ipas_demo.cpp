@@ -293,13 +293,6 @@ void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
 	quadrotor_demo::path path_msg_empty;
 
     for(auto p: pathes){
-        std::vector<int> errorCase = {443, 413, 383, 353, 323, 324, 325};
-        std::vector<int> targetCase;
-        if (p.first == 7) {
-            for(auto v: p.second){
-                targetCase.push_back(v->id_);
-            }
-        }
     	if (p.first >= (num_vehicle_ - num_sensors_)) {
     		quadrotor_demo::pathes pathes_msg;
         	pathes_msg.path_name = std::string("Drone ") + std::string(std::to_string(p.first - (num_vehicle_ - num_sensors_) + 1));
