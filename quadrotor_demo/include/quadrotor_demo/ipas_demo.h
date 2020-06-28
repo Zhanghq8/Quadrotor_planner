@@ -86,7 +86,8 @@ private:
     bool updatemap_flag;
     bool updategraph_flag;
     std::unordered_set<int64_t> task_id_;
-    std::unordered_set<int64_t> hotspots_;
+    std::vector<int64_t> hotspots_;
+    std::vector<std::vector<int>> hotspotIndex;
     std::unordered_map<int64_t, int64_t> index2Id;
     std::unordered_set<int64_t> obstacles;
 
@@ -113,7 +114,7 @@ public:
     void getTaskId();
     void updateSensorPos(); 
     void printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath);
-    void printHotspots(std::unordered_set<int64_t>& hotspots);
+    void printHotspots(std::vector<int64_t>& hotspots);
     void printAxis();
     void printObstacle();
     void updateLocalmap(const quadrotor_demo::localmap& localmap);

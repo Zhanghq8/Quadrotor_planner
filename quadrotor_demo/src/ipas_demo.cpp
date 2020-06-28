@@ -25,7 +25,12 @@ void IpasDemo::initMap() {
 
     // Build true map
     true_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1);
-    true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
+    // for(auto rg: range_idx_){
+    //     for(int ii = rg[0]; ii<rg[1];ii++){
+    //         true_grid->SetObstacleRegionLabel(ii,1);
+    //     }
+    // }
+    // true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
     //===============================================================================================//
     //============================================= CBBA ============================================//
     //===============================================================================================//   
@@ -67,14 +72,9 @@ void IpasDemo::initPub() {
     // ROS_INFO("Initializing Publishers");
     task_pub_ = nh_.advertise<quadrotor_demo::final_path>("/sensor_path", 1, true); 
     iteration_complete_pub_ = nh_.advertise<std_msgs::Bool>("/updatemap_flag", 1, true); 
-    marker_pub_ = nh_.advertise<visualization_msgs::Marker>("/visualization_marker", 10);
-    markerarray_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/visualization_markerarray", 10);
-    obsarray_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/visualization_markerarray1", 10);
-    
-
-    // control1input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone1/cmd_vel", 1, true); 
-    // control2input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone2/cmd_vel", 1, true);
-    // control3input_pub_ = nh_.advertise<geometry_msgs::Twist>("/drone3/cmd_vel", 1, true);
+    marker_pub_ = nh_.advertise<visualization_msgs::Marker>("/visualization_axis", 10);
+    markerarray_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/visualization_finalpath", 10);
+    obsarray_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("/visualization_obstacle", 10);
 }
 
 void IpasDemo::currentpos1Callback(const geometry_msgs::PoseStamped& odom1) {
@@ -139,13 +139,14 @@ void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
 	int32_t x_col = int32_t(localmap.xpos);
 	int32_t y_row = int32_t(localmap.ypos);
 	int64_t id = true_grid->GetIDFromCoordinate(x_col, y_row);
+    // std::shared_ptr<SquareGrid> new_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1);
 	for(std::vector<quadrotor_demo::obstacle_info>::const_iterator itr = localmap.obstacle_data.begin(); 
 			itr != localmap.obstacle_data.end(); ++itr) {
 		if (itr->isobstacle) {
 			int64_t neighborId = id + index2Id[itr->id];
 			// check if the id is within the boundry of the map
 			// check the up and bottom boundry
-			if (neighborId < 0 || neighborId > num_col_ * num_row_) {
+			if (neighborId < 0 || neighborId >=  num_col_ * num_row_) {
 				continue;
 			}
 			// check the left boundry
@@ -156,23 +157,19 @@ void IpasDemo::updateLocalmap(const quadrotor_demo::localmap& localmap) {
 			if ((id+1) % num_col_ == 0 && neighborId == id + 1) {
 				continue;
 			}
-			// std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
-			// std::cout << "id: " << itr->id << " neighborid: " << neighborId << std::endl; 
-			// std::cout << "!!!!!!!!!!!!!!!!!!!!!!Debug!!!!!!!!!!!!!!!!!!!!!" << std::endl; 
 			obstacles.insert(neighborId);
+            true_grid->SetObstacleRegionLabel(neighborId,1);
 		}
 	}
-	std::shared_ptr<SquareGrid> new_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1);
-	for (auto itr = obstacles.begin(); itr != obstacles.end(); itr++) {
-		new_grid->SetObstacleRegionLabel(*itr,1);
-	}
-	true_grid = new_grid;
+	// std::shared_ptr<SquareGrid> new_grid = GridGraph::CreateSquareGrid(num_row_,num_col_,1);
 }
 
 void IpasDemo::updatemapflagCallback(const std_msgs::Bool& flag_msg) {
     updatemap_flag = flag_msg.data;
     printAxis();
     if (updatemap_flag == true) {
+        ros::Rate loop_rate(5);
+        loop_rate.sleep();
     	mobilePath();
     }
 }
@@ -183,37 +180,11 @@ void IpasDemo::updategraphflagCallback(const std_msgs::Bool& graphFlag_msg) {
     	true_graph = GridGraph::BuildGraphFromSquareGrid(true_grid,false);
 
     	// update sensor pose
+        ros::Rate loop_rate(5);
+        loop_rate.sleep();
     	updateSensorPos();
         IPASMeasurement::UpdateLocalMap(vehicle_team_,true_graph,sensing_tasks_);
         IPASMeasurement::MergeLocalMap(vehicle_team_);
-
-
-   //      int cnt = 0;
-   //      file_path << "=============================================" << "\n";
-   //      file_path << "=============================================" << "\n";
-   //      for (auto element : vehicle_team_->auto_team_) {
-   //      	file_path << "local graph " <<cnt << ": "<<  "\n";
-   //      	std::shared_ptr<Graph_t<SquareCell*>> new_graph = element->local_graph_;
-	  //   	std::vector<Vertex_t<SquareCell*>*> vts = new_graph->GetAllVertex();
-			// for(auto vt: vts){
-
-			//     file_path << "Vertex " << vt->state_->id_ << ": "<<  "\n";
-			//     file_path << "The probability p is " << vt->state_->p_ << "\n";
-			//     file_path << "The IG is " << vt->state_->ig_ << "\n";
-
-			//     file_path << "The neighbors are: " << "\n";
-			//     std::vector<Vertex_t<SquareCell*>*> neighbs = vt->GetNeighbours();
-			//     for(auto nb: neighbs){
-			//         auto ecost = vt->GetEdgeCost(nb);
-			//         file_path << "Vertex " << nb->state_->id_ << ". The edge cost is: " << ecost << "\n";
-			//         file_path << "The probability p is " << vt->state_->p_ << "\n";
-			//     	file_path << "The IG is " << vt->state_->ig_ << "\n";
-			//     }
-			//     file_path << "=============================================" << "\n";
-			//     file_path << "=============================================" << "\n";
-			// }   
-   //      	cnt++;
-   //      }
 
         std::cout << "Localmap Updated!" << std::endl;
         std_msgs::Bool iterationComplete_flag;
@@ -241,9 +212,15 @@ void IpasDemo::mobilePath() {
 	std::cout << "======================================" << std::endl;
 	std::cout << "======================================" << std::endl;
 	std::cout << "Iteration: " << ipas_tt << std::endl;
-	// file_path << "Iteration: " << ipas_tt << "\n";
-    // Implement the CBBA to determine the task assignment
+
+    std::cout << "Obstacle id: ";
+    for (auto itr = obstacles.begin(); itr != obstacles.end(); itr++) {
+        std::cout << *itr << ", "; 
+    }
+    std::cout << std::endl;
+
     CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,tasks_);
+
     // Compute the path for the auto team while satisfying its local assignment
     std::map<int64_t,Path_t<SquareCell*>> path_ltl_ = IPASMeasurement::GeneratePaths(vehicle_team_,tasks_,TaskType::RESCUE);
     //=============================================================//
@@ -284,15 +261,16 @@ void IpasDemo::sensorPath() {
     //============================================= IPAS ============================================//
     //===============================================================================================// 
     IPASMeasurement::ComputeHotSpots(vehicle_team_,tasks_);
+
     sensing_tasks_ = IPASMeasurement::ConstructMeasurementTasks(vehicle_team_);
     hotspots_.clear();
     hotspots_ = sensing_tasks_.GetHotspots();
-    std::cout << "hotspots " << hotspots_.size() << std::endl;
+    // std::cout << "hotspots " << hotspots_.size() << std::endl;
     printHotspots(hotspots_);
-    CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
+    hotspotIndex.clear();
 
+    hotspotIndex = CBBA::ConsensusBasedBundleAlgorithm(vehicle_team_,sensing_tasks_);
     std::map<int64_t,Path_t<SquareCell*>> path_sensing_ = IPASMeasurement::GeneratePaths(vehicle_team_,sensing_tasks_,TaskType::MEASURE);
-    std::cout << "path for sensor " << path_sensing_.size() << std::endl;
     for(auto p: path_sensing_){
     	if (p.first >= (num_vehicle_ - num_sensors_)) {
 	        std::cout << "The path for sensor " << p.first << " is: ";
@@ -310,10 +288,18 @@ void IpasDemo::sensorPath() {
 }
 
 void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
+
 	quadrotor_demo::final_path finalpath_msg;
 	quadrotor_demo::path path_msg_empty;
-	// int path_size = pathes.size();
+
     for(auto p: pathes){
+        std::vector<int> errorCase = {443, 413, 383, 353, 323, 324, 325};
+        std::vector<int> targetCase;
+        if (p.first == 7) {
+            for(auto v: p.second){
+                targetCase.push_back(v->id_);
+            }
+        }
     	if (p.first >= (num_vehicle_ - num_sensors_)) {
     		quadrotor_demo::pathes pathes_msg;
         	pathes_msg.path_name = std::string("Drone ") + std::string(std::to_string(p.first - (num_vehicle_ - num_sensors_) + 1));
@@ -330,22 +316,33 @@ void IpasDemo::pathesPub(const std::map<int64_t,Path_t<SquareCell*>>& pathes) {
 	    		quadrotor_demo::path path_msg;
 	    		int cnt = 0;
 		        for(auto v: p.second){
-		        	quadrotor_demo::pose pose_msg;
-		        	pose_msg.x = v->position_.x;
-		        	pose_msg.y = v->position_.y;
-		        	pose_msg.id = v->id_;
-		        	pose_msg.xcoordinate = v->coordinate_.x;
-		        	pose_msg.ycoordinate = v->coordinate_.y;
-		        	path_msg.path.push_back(pose_msg);
-		        	if (hotspots_.count(v->id_)) {
-		        		cnt++;
-		        		pathes_msg.pathes_data.push_back(path_msg);
-		        		if (v->id_ != p.second.back()->id_) {
-		        			path_msg.path.clear();
-		        		} else {
-		        			continue;
-		        		}
-		        	}
+                    int pathId = v->id_;
+                    bool found = true;
+                    if (found) {
+                        quadrotor_demo::pose pose_msg;
+                        pose_msg.x = v->position_.x;
+                        pose_msg.y = v->position_.y;
+                        pose_msg.id = v->id_;
+                        pose_msg.xcoordinate = v->coordinate_.x;
+                        pose_msg.ycoordinate = v->coordinate_.y;
+                        path_msg.path.push_back(pose_msg);
+                        bool containHotspot = false;
+                        for (int i = 0; i < hotspotIndex[p.first].size(); i++) {
+                            if (hotspots_[hotspotIndex[p.first][i]] == v->id_) {
+                                containHotspot = true;
+                            }
+                        }
+                        if (containHotspot) {
+                            cnt++;
+                            pathes_msg.pathes_data.push_back(path_msg);
+                            if (v->id_ != p.second.back()->id_) {
+                                path_msg.path.clear();
+                            } else {
+                                continue;
+                            }
+                        }
+                    }
+		        	
 		        }
 		        while (cnt < num_sensors_) {
 	        		pathes_msg.pathes_data.push_back(path_msg_empty);
@@ -384,7 +381,7 @@ void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) 
     // arrow_marker.lifetime = lifetime.fromSec(0.04); // lifetime of 40ms : 25Hz
 
 	for(auto p: validPath){
-    	if (p.first < 3) {
+    	if (p.first < (num_vehicle_ - num_sensors_)) {
 	        for(auto v: p.second){
 				geometry_msgs::Point obj;
 		        obj.x = v->position_.x;
@@ -410,7 +407,7 @@ void IpasDemo::printValidPath(std::map<int64_t,Path_t<SquareCell*>>& validPath) 
 }
 
 
-void IpasDemo::printHotspots(std::unordered_set<int64_t>& hotspots) {
+void IpasDemo::printHotspots(std::vector<int64_t>& hotspots) {
 	visualization_msgs::MarkerArray hotspot_marker_array;
 
     visualization_msgs::Marker hotspot_marker;
@@ -429,9 +426,8 @@ void IpasDemo::printHotspots(std::unordered_set<int64_t>& hotspots) {
 
 	for(auto itr = hotspots.begin(); itr != hotspots.end(); itr++){
 			geometry_msgs::Point obj;
-	        obj.x = *itr % num_col_;
-	        obj.y = *itr / num_row_;
-	        // std::cout << "pos: " << obj.x << " " << obj.y << std::endl;
+	        obj.x = *itr % num_col_ + 0.5;
+	        obj.y = *itr / num_row_ + 0.5;
 	        obj.z = 0.1;
 	        hotspot_marker.points.push_back(obj);
 	        hotspot_marker.colors.push_back(hotspot_marker.color);
@@ -447,7 +443,7 @@ void IpasDemo::printObstacle() {
     visualization_msgs::Marker obstacle_marker;
     obstacle_marker.type = visualization_msgs::Marker::CUBE_LIST;
     obstacle_marker.action = visualization_msgs::Marker::ADD;
-    obstacle_marker.ns = "obstcle";
+    obstacle_marker.ns = "obstacle";
     obstacle_marker.scale.x = 1;
     obstacle_marker.scale.y = 1;
     obstacle_marker.scale.z = 1;
@@ -583,111 +579,163 @@ void IpasDemo::printAxis() {
 	texty_marker.color.a = 1.0;
 	marker_pub_.publish(texty_marker);
 
-    visualization_msgs::Marker textx0_marker;
-	textx0_marker.header.frame_id = "/world";
-	textx0_marker.header.stamp = ros::Time::now();
-	textx0_marker.ns = "text";
-	textx0_marker.id = 5;
-	textx0_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-	textx0_marker.action = visualization_msgs::Marker::ADD;
+    visualization_msgs::Marker text0_marker;
+	text0_marker.header.frame_id = "/world";
+	text0_marker.header.stamp = ros::Time::now();
+	text0_marker.ns = "text";
+	text0_marker.id = 5;
+	text0_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	text0_marker.action = visualization_msgs::Marker::ADD;
 
-	textx0_marker.pose.position.x = 0.5;
-	textx0_marker.pose.position.y = -0.5;
-	textx0_marker.pose.position.z = 0.1;
-	textx0_marker.pose.orientation.x = 0.0;
-	textx0_marker.pose.orientation.y = 0.0;
-	textx0_marker.pose.orientation.z = 0.0;
-	textx0_marker.pose.orientation.w = 1.0;
+	text0_marker.pose.position.x = 0.5;
+	text0_marker.pose.position.y = -0.5;
+	text0_marker.pose.position.z = 0.1;
+	text0_marker.pose.orientation.x = 0.0;
+	text0_marker.pose.orientation.y = 0.0;
+	text0_marker.pose.orientation.z = 0.0;
+	text0_marker.pose.orientation.w = 1.0;
 
-	textx0_marker.text = "0";
+	text0_marker.text = "0";
 
-	textx0_marker.scale.z = 0.7;
+	text0_marker.scale.z = 0.7;
 
-	textx0_marker.color.r = 1.0;
-	textx0_marker.color.g = 1.0;
-	textx0_marker.color.b = 0.0;
-	textx0_marker.color.a = 1.0;
-	marker_pub_.publish(textx0_marker);
+	text0_marker.color.r = 1.0;
+	text0_marker.color.g = 1.0;
+	text0_marker.color.b = 0.0;
+	text0_marker.color.a = 1.0;
+	marker_pub_.publish(text0_marker);
 
-    visualization_msgs::Marker textx14_marker;
-	textx14_marker.header.frame_id = "/world";
-	textx14_marker.header.stamp = ros::Time::now();
-	textx14_marker.ns = "text";
-	textx14_marker.id = 6;
-	textx14_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-	textx14_marker.action = visualization_msgs::Marker::ADD;
+    visualization_msgs::Marker text0a_marker;
+    text0a_marker.header.frame_id = "/world";
+    text0a_marker.header.stamp = ros::Time::now();
+    text0a_marker.ns = "text";
+    text0a_marker.id = 10;
+    text0a_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    text0a_marker.action = visualization_msgs::Marker::ADD;
 
-	textx14_marker.pose.position.x = 14.5;
-	textx14_marker.pose.position.y = -0.5;
-	textx14_marker.pose.position.z = 0.1;
-	textx14_marker.pose.orientation.x = 0.0;
-	textx14_marker.pose.orientation.y = 0.0;
-	textx14_marker.pose.orientation.z = 0.0;
-	textx14_marker.pose.orientation.w = 1.0;
+    text0a_marker.pose.position.x = 0.5;
+    text0a_marker.pose.position.y = -0.5;
+    text0a_marker.pose.position.z = 0.1;
+    text0a_marker.pose.orientation.x = 0.0;
+    text0a_marker.pose.orientation.y = 0.0;
+    text0a_marker.pose.orientation.z = 0.0;
+    text0a_marker.pose.orientation.w = 1.0;
 
-	textx14_marker.text = "14";
+    text0a_marker.text = "0";
 
-	textx14_marker.scale.z = 0.7;
+    text0a_marker.scale.z = 0.7;
 
-	textx14_marker.color.r = 1.0;
-	textx14_marker.color.g = 1.0;
-	textx14_marker.color.b = 0.0;
-	textx14_marker.color.a = 1.0;
-	marker_pub_.publish(textx14_marker);
+    text0a_marker.color.r = 1.0;
+    text0a_marker.color.g = 1.0;
+    text0a_marker.color.b = 0.0;
+    text0a_marker.color.a = 1.0;
+    marker_pub_.publish(text0a_marker);
 
-    visualization_msgs::Marker texty0_marker;
-	texty0_marker.header.frame_id = "/world";
-	texty0_marker.header.stamp = ros::Time::now();
-	texty0_marker.ns = "text";
-	texty0_marker.id = 7;
-	texty0_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-	texty0_marker.action = visualization_msgs::Marker::ADD;
+    visualization_msgs::Marker text14_marker;
+	text14_marker.header.frame_id = "/world";
+	text14_marker.header.stamp = ros::Time::now();
+	text14_marker.ns = "text";
+	text14_marker.id = 6;
+	text14_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	text14_marker.action = visualization_msgs::Marker::ADD;
 
-	texty0_marker.pose.position.x = -0.5;
-	texty0_marker.pose.position.y = 0.5;
-	texty0_marker.pose.position.z = 0.1;
-	texty0_marker.pose.orientation.x = 0.0;
-	texty0_marker.pose.orientation.y = 0.0;
-	texty0_marker.pose.orientation.z = 0.0;
-	texty0_marker.pose.orientation.w = 1.0;
+	text14_marker.pose.position.x = 14.5;
+	text14_marker.pose.position.y = -0.5;
+	text14_marker.pose.position.z = 0.1;
+	text14_marker.pose.orientation.x = 0.0;
+	text14_marker.pose.orientation.y = 0.0;
+	text14_marker.pose.orientation.z = 0.0;
+	text14_marker.pose.orientation.w = 1.0;
 
-	texty0_marker.text = "0";
+	text14_marker.text = "14";
 
-	texty0_marker.scale.z = 0.7;
+	text14_marker.scale.z = 0.7;
 
-	texty0_marker.color.r = 1.0;
-	texty0_marker.color.g = 1.0;
-	texty0_marker.color.b = 0.0;
-	texty0_marker.color.a = 1.0;
-	marker_pub_.publish(texty0_marker);
+	text14_marker.color.r = 1.0;
+	text14_marker.color.g = 1.0;
+	text14_marker.color.b = 0.0;
+	text14_marker.color.a = 1.0;
+	marker_pub_.publish(text14_marker);
 
-    visualization_msgs::Marker texty14_marker;
-	texty14_marker.header.frame_id = "/world";
-	texty14_marker.header.stamp = ros::Time::now();
-	texty14_marker.ns = "text";
-	texty14_marker.id = 8;
-	texty14_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-	texty14_marker.action = visualization_msgs::Marker::ADD;
+    visualization_msgs::Marker text30_marker;
+	text30_marker.header.frame_id = "/world";
+	text30_marker.header.stamp = ros::Time::now();
+	text30_marker.ns = "text";
+	text30_marker.id = 7;
+	text30_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	text30_marker.action = visualization_msgs::Marker::ADD;
 
-	texty14_marker.pose.position.x = -0.5;
-	texty14_marker.pose.position.y = 14.5;
-	texty14_marker.pose.position.z = 0.1;
-	texty14_marker.pose.orientation.x = 0.0;
-	texty14_marker.pose.orientation.y = 0.0;
-	texty14_marker.pose.orientation.z = 0.0;
-	texty14_marker.pose.orientation.w = 1.0;
+	text30_marker.pose.position.x = 29.5;
+	text30_marker.pose.position.y = -0.5;
+	text30_marker.pose.position.z = 0.1;
+	text30_marker.pose.orientation.x = 0.0;
+	text30_marker.pose.orientation.y = 0.0;
+	text30_marker.pose.orientation.z = 0.0;
+	text30_marker.pose.orientation.w = 1.0;
 
-	texty14_marker.text = "14";
+	text30_marker.text = "29";
 
-	texty14_marker.scale.z = 0.7;
+	text30_marker.scale.z = 0.7;
 
-	texty14_marker.color.r = 1.0;
-	texty14_marker.color.g = 1.0;
-	texty14_marker.color.b = 0.0;
-	texty14_marker.color.a = 1.0;
+	text30_marker.color.r = 1.0;
+	text30_marker.color.g = 1.0;
+	text30_marker.color.b = 0.0;
+	text30_marker.color.a = 1.0;
+	marker_pub_.publish(text30_marker);
 
-	marker_pub_.publish(texty14_marker);
+    visualization_msgs::Marker text14a_marker;
+	text14a_marker.header.frame_id = "/world";
+	text14a_marker.header.stamp = ros::Time::now();
+	text14a_marker.ns = "text";
+	text14a_marker.id = 8;
+	text14a_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+	text14a_marker.action = visualization_msgs::Marker::ADD;
 
+	text14a_marker.pose.position.x = -0.5;
+	text14a_marker.pose.position.y = 14.5;
+	text14a_marker.pose.position.z = 0.1;
+	text14a_marker.pose.orientation.x = 0.0;
+	text14a_marker.pose.orientation.y = 0.0;
+	text14a_marker.pose.orientation.z = 0.0;
+	text14a_marker.pose.orientation.w = 1.0;
+
+	text14a_marker.text = "14";
+
+	text14a_marker.scale.z = 0.7;
+
+	text14a_marker.color.r = 1.0;
+	text14a_marker.color.g = 1.0;
+	text14a_marker.color.b = 0.0;
+	text14a_marker.color.a = 1.0;
+
+	marker_pub_.publish(text14a_marker);
+
+    visualization_msgs::Marker text30a_marker;
+    text30a_marker.header.frame_id = "/world";
+    text30a_marker.header.stamp = ros::Time::now();
+    text30a_marker.ns = "text";
+    text30a_marker.id = 9;
+    text30a_marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    text30a_marker.action = visualization_msgs::Marker::ADD;
+
+    text30a_marker.pose.position.x = -0.5;
+    text30a_marker.pose.position.y = 29.5;
+    text30a_marker.pose.position.z = 0.1;
+    text30a_marker.pose.orientation.x = 0.0;
+    text30a_marker.pose.orientation.y = 0.0;
+    text30a_marker.pose.orientation.z = 0.0;
+    text30a_marker.pose.orientation.w = 1.0;
+
+    text30a_marker.text = "29";
+
+    text30a_marker.scale.z = 0.7;
+
+    text30a_marker.color.r = 1.0;
+    text30a_marker.color.g = 1.0;
+    text30a_marker.color.b = 0.0;
+    text30a_marker.color.a = 1.0;
+
+    marker_pub_.publish(text30a_marker);
 }
 
 int main(int argc, char** argv) {
