@@ -1,7 +1,8 @@
 # Directed Research
 Interactive Planning and Sensing with a Team of Multiple Robotic Vehicles in an Unknown Environment
 
----
+## Note:
+- This code is for IPAS demo with 4 drones, 4 mobile robots and 10 tasks in 30 by 30 map. The code for AIAA conference paper is in the quadrotor_demo.zip file. 
 
 ## Dependencies
 
@@ -46,4 +47,5 @@ Interactive Planning and Sensing with a Team of Multiple Robotic Vehicles in an 
 5. Activate the demo with `rostopic pub /updatemap_flag std_msgs/Bool "data: true"`
 
 ## Demo:
-- <<https://youtu.be/GRI9eFAI1XE>>
+- Demo for AIAA conference paper <<https://youtu.be/s7kAm7CYyI0>>
+- Demo for 4 drones in 30 by 30 map <<https://youtu.be/iId4MHs7Qso>>
